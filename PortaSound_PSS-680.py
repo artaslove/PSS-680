@@ -95,7 +95,7 @@ class PortaSound:
 			checksum = self.addrandomchar(f,0,15,1,checksum)	# Carrier Frequency Multiple
 			checksum = self.addrandomchar(f,0,7,1,checksum) 	# Modulator Total Level, upper 3 bits
 			checksum = self.addrandomchar(f,0,15,1,checksum)	# Modulator Total Level, 4 bits
-			checksum = self.addrandomchar(f,0,7,1,checksum) 	# Carrier Total Level, upper 3 bits
+			checksum = self.addrandomchar(f,0,0,1,checksum) 	# Carrier Total Level, upper 3 bits	# It's nice to be able to hear the patches
 			checksum = self.addrandomchar(f,0,15,1,checksum)	# Carrier Total Level, 4 bits
 			checksum = self.addrandomchar(f,0,15,1,checksum) 	# Modulator Level Key Scaling Hi
 			checksum = self.addrandomchar(f,0,15,1,checksum)	# Modulator Level Key Scaling Lo
@@ -121,20 +121,20 @@ class PortaSound:
 			checksum = self.addrandomchar(f,0,1,8,checksum)		# Feedback bit 4 only
 			checksum = self.addrandomchar(f,0,7,1,checksum) 	# Pitch Modulation sensitivity 3 bits 
 			checksum = self.addrandomchar(f,0,3,1,checksum)		# Amplitude Modulation sensitivity 2 bits
-			checksum = self.addrandomchar(f,0,15,1,checksum) 	####  
-			checksum = self.addrandomchar(f,0,15,1,checksum) 	#### Here be dragons
-			checksum = self.addrandomchar(f,0,15,1,checksum) 	####
-			checksum = self.addrandomchar(f,0,15,1,checksum) 	#### 
-			checksum = self.addrandomchar(f,0,15,1,checksum) 	#### 	
-			checksum = self.addrandomchar(f,0,15,1,checksum) 	####
-			checksum = self.addrandomchar(f,0,15,1,checksum) 	####
+			checksum = self.addrandomchar(f,0,15,1,checksum) 	########  09 Here be dragons
+			checksum = self.addrandomchar(f,0,15,1,checksum) 	########  0F 
+			f.write(chr(0))	
+			checksum = self.addrandomchar(f,0,15,1,checksum) 	########  0B
+			checksum = self.addrandomchar(f,0,15,1,checksum) 	########  06 	
+			checksum = self.addrandomchar(f,0,15,1,checksum) 	########  0E
+			checksum = self.addrandomchar(f,0,15,1,checksum) 	########  0F
 			checksum = self.addrandomchar(f,0,15,1,checksum)	# Modulator Sustain Release Rate
-			checksum = self.addrandomchar(f,0,15,1,checksum) 	####
+			checksum = self.addrandomchar(f,0,15,1,checksum) 	########  0F
 			checksum = self.addrandomchar(f,0,15,1,checksum)	# Carrier Sustain Release Rate
 			checksum = self.addrandomchar(f,0,7,1,checksum) 	# Vibrato Delay Time upper 3 bits 
 			checksum = self.addrandomchar(f,0,15,1,checksum)	# Vibrato Delay Time
 			f.write(chr(0))	
-			f.write(chr(0))	
+			checksum = self.addrandomchar(f,0,15,1,checksum) 	########  05
 			checksum = self.addrandomchar(f,0,3,4,checksum)		# Vibrato enable 1 bit, sustain enable 1 bit
 			z = 0
 			while z < 17:
