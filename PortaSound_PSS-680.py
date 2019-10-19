@@ -95,7 +95,7 @@ class PortaSound:
 			checksum = self.addrandomchar(f,0,15,1,checksum)	# Carrier Frequency Multiple
 			checksum = self.addrandomchar(f,0,7,1,checksum) 	# Modulator Total Level, upper 3 bits
 			checksum = self.addrandomchar(f,0,15,1,checksum)	# Modulator Total Level, 4 bits
-			checksum = self.addrandomchar(f,0,0,1,checksum) 	# Carrier Total Level, upper 3 bits	# It's nice to be able to hear the patches
+			checksum = self.addrandomchar(f,0,1,1,checksum) 	# Carrier Total Level, upper 3 bits - it's nice to be able to hear the patches
 			checksum = self.addrandomchar(f,0,15,1,checksum)	# Carrier Total Level, 4 bits
 			checksum = self.addrandomchar(f,0,15,1,checksum) 	# Modulator Level Key Scaling Hi
 			checksum = self.addrandomchar(f,0,15,1,checksum)	# Modulator Level Key Scaling Lo
