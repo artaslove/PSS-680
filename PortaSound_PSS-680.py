@@ -83,7 +83,7 @@ class PortaSound:
 		f.write(chr(arr[r]))
 		return checksum
 
-	def random_patches(self,path):						# A more polite way of randomizing, avoiding most of the unused bits according to the manual 
+	def random_patches(self,path): 
 		random.seed()
 		f = open(path,'wb')
 		bank = 0
@@ -92,7 +92,7 @@ class PortaSound:
 			f.write(chr(self.patch_header[1]))
 			f.write(chr(self.patch_header[2]))
 			f.write(chr(self.patch_header[3]))
-			f.write(chr(0))
+			f.write(chr(0))						# can be other than zero, but is ignored
 			f.write(chr(bank))					# 0-4, other values are ignored
 			checksum = bank
 			checksum = self.addrandomchar(f,0,15,1,checksum) 	# Modulator fine detune. 4th bit is sign bit
@@ -139,7 +139,7 @@ class PortaSound:
 			checksum = self.addrandomchar(f,0,15,1,checksum)	# Carrier Sustain Release Rate
 			checksum = self.addrandomchar(f,0,7,1,checksum) 	# Vibrato Delay Time upper 3 bits 
 			checksum = self.addrandomchar(f,0,15,1,checksum)	# Vibrato Delay Time
-			f.write(chr(0))	
+			f.write(chr(0))						# This appears to always be zero
 			checksum = self.addrandomchar2(f,[0,1,3,4,5,7,8,11],checksum) 	########  00 01 03 04 05 07 08 0B
 			checksum = self.addrandomchar(f,0,3,4,checksum)		# Vibrato enable 1 bit, sustain enable 1 bit
 			z = 0
