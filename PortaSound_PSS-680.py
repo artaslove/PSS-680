@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import random 
+import sys
 
 class PortaSound:
 	patch_header = [240,67,118,0]
@@ -18,6 +19,7 @@ class PortaSound:
 		checksum = 0
 		validsum = False
 		value = 0
+		allgood = 0
 		while True:
 			byte_s = f.read(1)
 			if not byte_s:
@@ -28,7 +30,6 @@ class PortaSound:
 					header = False
 				else:
 					header = True
-				headerbyte = ord(byte)
 			if i == 1 and ord(byte) != self.patch_header[1]:
 				header = False
 			if i == 2 and ord(byte) != self.patch_header[2]:
@@ -44,22 +45,10 @@ class PortaSound:
 				if self.twos_comp_b(checksum) == value:
 					validsum = True
 			if i == 71:
-                                footerbyte = ord(byte)
 				if ord(byte) == self.patch_footer:
 					footer = True
-				if header == True: 
-					print "Header present."
-				else:
-					print "Header invalid.", headerbyte
-				if validsum == True:
-					print "Checksum correct."
-				else:
-					print "Checksum invalid.", self.twos_comp_b(checksum), value
-
-				if footer == True:
-					print "Footer present."
-				else:
-					print "Footer invalid.", footerbyte
+				if header == True and validsum == True and footer == True:
+					allgood = allgood + 1
 				i = -1
 				header = False
 				headerbyte = 0
@@ -70,6 +59,10 @@ class PortaSound:
 				value = 0
 			i = i + 1
 		f.close()
+		if allgood == 5: 
+			return True
+		else:
+			return False
 	
 	def addrandomchar(self,f,low,high,mult,checksum):
 		r = random.randint(low,high) * mult
@@ -152,5 +145,12 @@ class PortaSound:
 		f.close()
 			
 p = PortaSound()
-p.random_patches('random_test.syx')
-p.check_binary('random_test.syx')
+if len(sys.argv) != 2:
+	print "Usage: ", str(sys.argv[0]), "[filename]"
+	exit()
+p.random_patches(sys.argv[1])
+if p.check_binary(sys.argv[1]) == True:
+	print "5 random patches saved to:", sys.argv[1]
+else:
+	print "Something went wrong with the patch generation." 
+
