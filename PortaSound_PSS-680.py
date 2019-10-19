@@ -77,6 +77,12 @@ class PortaSound:
 		f.write(chr(r))
 		return checksum
 
+	def addrandomchar2(self,f,arr,checksum):
+		r = random.randint(0,len(arr)-1)
+		checksum = (checksum + arr[r]) % 128
+		f.write(chr(arr[r]))
+		return checksum
+
 	def random_patches(self,path):						# A more polite way of randomizing, avoiding most of the unused bits according to the manual 
 		random.seed()
 		f = open(path,'wb')
@@ -102,9 +108,9 @@ class PortaSound:
 			checksum = self.addrandomchar(f,0,15,1,checksum) 	# Carrier Level Key Scaling Hi
 			checksum = self.addrandomchar(f,0,15,1,checksum)	# Carrier Level Key Scaling Lo
 			checksum = self.addrandomchar(f,0,15,1,checksum) 	# Modulator Level Key Scaling 2 bits, Attack rate upper 2 bits
-			checksum = self.addrandomchar(f,0,15,1,checksum)	# Modulator Attack rate 4 bits
+			checksum = self.addrandomchar(f,1,15,1,checksum)	# Modulator Attack rate 4 bits
 			checksum = self.addrandomchar(f,0,15,1,checksum) 	# Carrier Level Key Scaling 2 bits, Attack rate upper 2 bits
-			checksum = self.addrandomchar(f,0,15,1,checksum)	# Carrier Attack rate 4 bits
+			checksum = self.addrandomchar(f,1,15,1,checksum)	# Carrier Attack rate 4 bits
 			checksum = self.addrandomchar(f,0,15,1,checksum) 	# Modulator Amplitude Modulation Enable 1 bit, Course Detune 1 bit, Decay 1 Rate upper 2bits
 			checksum = self.addrandomchar(f,0,15,1,checksum)	# Modulator Decay 1 Rate 4 bits
 			checksum = self.addrandomchar(f,0,15,1,checksum) 	# Carrier Amplitude Modulation Enable 1 bit, Course Detune 1 bit, Decay 1 Rate upper 2bits
@@ -121,24 +127,24 @@ class PortaSound:
 			checksum = self.addrandomchar(f,0,1,8,checksum)		# Feedback bit 4 only
 			checksum = self.addrandomchar(f,0,7,1,checksum) 	# Pitch Modulation sensitivity 3 bits 
 			checksum = self.addrandomchar(f,0,3,1,checksum)		# Amplitude Modulation sensitivity 2 bits
-			checksum = self.addrandomchar(f,9,10,1,checksum)	########  09 0A Here be dragons
+			checksum = self.addrandomchar(f,9,10,1,checksum)	########  09 0A Here be dragons - these bytes appear in patches, but are not in the manual
 			checksum = self.addrandomchar(f,14,15,1,checksum)	########  0E 0F 
 			checksum = self.addrandomchar(f,0,1,1,checksum)		########  00 01
-			checksum = self.addrandomchar(f,0,15,1,checksum) 	########  00 07 0B
-			checksum = self.addrandomchar(f,1,7,2,checksum) 	########  02 06 0E	
+			checksum = self.addrandomchar2(f,[0,7,11],checksum) 	########  00 07 0B
+			checksum = self.addrandomchar2(f,[2,6,14],checksum) 	########  02 06 0E	
 			checksum = self.addrandomchar(f,13,15,1,checksum) 	########  0D 0E 0F
-			checksum = self.addrandomchar(f,0,15,1,checksum) 	########  00 04 05 06 0F
+			checksum = self.addrandomchar2(f,[0,4,5,6,15],checksum) ########  00 04 05 06 0F
 			checksum = self.addrandomchar(f,0,15,1,checksum)	# Modulator Sustain Release Rate
-			checksum = self.addrandomchar(f,5,15,1,checksum) 	########  05 06 07 09 0F
+			checksum = self.addrandomchar2(f,[5,6,7,9,15],checksum) ########  05 06 07 09 0F
 			checksum = self.addrandomchar(f,0,15,1,checksum)	# Carrier Sustain Release Rate
 			checksum = self.addrandomchar(f,0,7,1,checksum) 	# Vibrato Delay Time upper 3 bits 
 			checksum = self.addrandomchar(f,0,15,1,checksum)	# Vibrato Delay Time
 			f.write(chr(0))	
-			checksum = self.addrandomchar(f,0,11,1,checksum) 	########  00 01 03 04 05 07 08 0B
+			checksum = self.addrandomchar2(f,[0,1,3,4,5,7,8,11],checksum) 	########  00 01 03 04 05 07 08 0B
 			checksum = self.addrandomchar(f,0,3,4,checksum)		# Vibrato enable 1 bit, sustain enable 1 bit
 			z = 0
 			while z < 17:
-				f.write(chr(0))
+				f.write(chr(0))					# none of the patches have anything but zeros here
 				z = z + 1
 			f.write(chr(self.twos_comp_b(checksum)))
 			f.write(chr(self.patch_footer))
