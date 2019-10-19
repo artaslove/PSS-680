@@ -125,7 +125,7 @@ class PortaSound:
 			checksum = self.addrandomchar(f,14,15,1,checksum)	########  0E 0F 
 			checksum = self.addrandomchar(f,0,1,1,checksum)		########  00 01
 			checksum = self.addrandomchar(f,0,15,1,checksum) 	########  00 07 0B
-			checksum = self.addrandomchar(f,2,14,1,checksum) 	########  02 06 0E	
+			checksum = self.addrandomchar(f,1,7,2,checksum) 	########  02 06 0E	
 			checksum = self.addrandomchar(f,13,15,1,checksum) 	########  0D 0E 0F
 			checksum = self.addrandomchar(f,0,15,1,checksum) 	########  00 04 05 06 0F
 			checksum = self.addrandomchar(f,0,15,1,checksum)	# Modulator Sustain Release Rate
