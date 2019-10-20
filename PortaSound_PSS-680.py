@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-from fbs_runtime.application_context.PySide2 import ApplicationContext
 from PySide2.QtCore import QDateTime, Qt, QTimer
 from PySide2.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
         QDial, QDialog, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit,
@@ -417,20 +416,21 @@ class PortaSound:
 			f.write((self.twos_comp_b(checksum)).to_bytes(1, byteorder="little"))
 			f.write((self.patch_footer).to_bytes(1, byteorder="little"))
 		f.close()
-			
-p = PortaSound()
-app = QApplication([])
-if len(sys.argv) != 2:
-	print("Usage: ", str(sys.argv[0]), "[filename]")
-	exit()
-p.random_patches(sys.argv[1])
-if p.check_binary(sys.argv[1]) == True:
-	label = "5 random patches saved to: " + str(sys.argv[1])
-	patches = p.load_patches(sys.argv[1])
-else:
-	label = "Something went wrong with the patch generation." 
-thelabel = QLabel(label)
-thelabel.show()
-app.exec_()
-print(str(patches))
+
+if __name__ == '__main__':			
+	p = PortaSound()
+	app = QApplication([])
+	if len(sys.argv) != 2:
+		print("Usage: ", str(sys.argv[0]), "[filename]")
+		exit()
+	p.random_patches(sys.argv[1])
+	if p.check_binary(sys.argv[1]) == True:
+		label = "5 random patches saved to: " + str(sys.argv[1])
+		patches = p.load_patches(sys.argv[1])
+	else:
+		label = "Something went wrong with the patch generation." 
+	thelabel = QLabel(label)
+	thelabel.show()
+	app.exec_()
+	# print(str(patches))
 
