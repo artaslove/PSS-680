@@ -317,7 +317,6 @@ class PortaSound:
 			f.write((0).to_bytes(1, byteorder="little"))			
 			f.write((patch['bank']).to_bytes(1, byteorder="little"))	
 			checksum = patch['bank']
-			####
 			checksum = self.writepatchchar(f,patch['modulator_fine_detune'],checksum)
 			checksum = self.writepatchchar(f,patch['modulator_frequency_multiple'],checksum)
 			checksum = self.writepatchchar(f,patch['carrier_fine_detune'],checksum)
@@ -354,7 +353,7 @@ class PortaSound:
 			if patch['modulator_course_detune_enable'] == True:
 				v = v | mask
 			checksum = self.writepatchchar(f,v,checksum)
-			mask = ~(2 << 4)
+			mask = ~(3 << 4)
 			v = patch['modulator_decay_rate_one'] & mask
 			checksum = self.writepatchchar(f,v,checksum)
 			v = patch['carrier_decay_rate_one'] >> 4
@@ -365,17 +364,17 @@ class PortaSound:
 			if patch['carrier_course_detune_enable'] == True:
 				v = v | mask
 			checksum = self.writepatchchar(f,v,checksum)
-			mask = ~(2 << 4)
+			mask = ~(3 << 4)
 			v = patch['carrier_decay_rate_one'] & mask
 			checksum = self.writepatchchar(f,v,checksum)
 			v = (patch['modulator_sine_table'] << 2) + (patch['modulator_decay_rate_two'] >> 4)
 			checksum = self.writepatchchar(f,v,checksum)
-			mask = ~(2 << 4)
+			mask = ~(3 << 4)
 			v = patch['modulator_decay_rate_two'] & mask
 			checksum = self.writepatchchar(f,v,checksum)
 			v = (patch['carrier_sine_table'] << 2) + (patch['carrier_decay_rate_two'] >> 4)
 			checksum = self.writepatchchar(f,v,checksum)
-			mask = ~(2 << 4)
+			mask = ~(3 << 4)
 			v = patch['carrier_decay_rate_two'] & mask
 			checksum = self.writepatchchar(f,v,checksum)
 			checksum = self.writepatchchar(f,patch['modulator_decay_level_one'],checksum)
