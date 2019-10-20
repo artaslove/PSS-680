@@ -9,7 +9,6 @@ from PySide2.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit
 
 import random 
 import sys
-# from PySide2.QtWidgets import QApplication, QLabel, QComboBox, QCheckBox, QRadioButton, QPushButton, QSlider
 
 class PortaSound:
 	patch_header = [248, 67, 118, 0]
@@ -95,8 +94,8 @@ class PortaSound:
 			f.write((self.patch_header[1]).to_bytes(1, byteorder="little"))
 			f.write((self.patch_header[2]).to_bytes(1, byteorder="little"))
 			f.write((self.patch_header[3]).to_bytes(1, byteorder="little"))
-			f.write((0).to_bytes(1, byteorder="little"))					# can be other than zero, but is ignored
-			f.write((bank).to_bytes(1, byteorder="little"))						# 0-4, other values are ignored
+			f.write((0).to_bytes(1, byteorder="little"))			# can be other than zero, but is ignored
+			f.write((bank).to_bytes(1, byteorder="little"))			# 0-4, other values are ignored
 			checksum = bank
 			checksum = self.addrandomchar(f,0,15,1,checksum) 		# Modulator fine detune. 4th bit is sign bit
 			checksum = self.addrandomchar(f,0,15,1,checksum)		# Modulator Frequency Multiple
@@ -142,12 +141,12 @@ class PortaSound:
 			checksum = self.addrandomchar(f,0,15,1,checksum)		# Carrier Sustain Release Rate
 			checksum = self.addrandomchar(f,0,7,1,checksum) 		# Vibrato Delay Time upper 3 bits 
 			checksum = self.addrandomchar(f,0,15,1,checksum)		# Vibrato Delay Time
-			f.write((0).to_bytes(1, byteorder="little"))					# This appears to always be zero
+			f.write((0).to_bytes(1, byteorder="little"))			# This appears to always be zero
 			checksum = self.addrandomchar2(f,[0,1,3,4,5,7,8,11],checksum) 	# 00 01 03 04 05 07 08 0B
 			checksum = self.addrandomchar(f,0,3,4,checksum)			# Vibrato enable 1 bit, sustain enable 1 bit
 			z = 0
 			while z < 17:
-				f.write((0).to_bytes(1, byteorder="little"))					# none of the patches have anything but zeros here
+				f.write((0).to_bytes(1, byteorder="little"))		# none of the patches have anything but zeros here
 				z = z + 1
 			f.write((self.twos_comp_b(checksum)).to_bytes(1, byteorder="little"))
 			f.write((self.patch_footer).to_bytes(1, byteorder="little"))
