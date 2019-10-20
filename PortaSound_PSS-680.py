@@ -57,15 +57,15 @@ class PortaSound:
 				if i == 18:					
 					patch['modulator_level_key_scaling'] = v >> 2
 					mask = ~(3 << 2)
-					tempv = (v | mask) << 4 
+					tempv = (v & mask) << 4 
 				if i == 19:
 					patch['modulator_attack_rate'] = tempv + v
 				if i == 20:
 					patch['carrier_level key_scaling'] = v >> 2
 					mask = ~(3 << 2)
-					tempv = (v | mask) << 4
+					tempv = (v & mask) << 4
 				if i == 21:
-					patch['carrier_attack_rate'] = v					
+					patch['carrier_attack_rate'] = tempv + v					
 				if i == 22:
 					mask = 1 << 4
 					tempv = v | mask
@@ -80,7 +80,7 @@ class PortaSound:
 					else:
 						patch['modulator_coarse_detune_enable'] = False
 					mask = ~(3 << 2)
-					tempv = (v | mask) << 4
+					tempv = (v & mask) << 4
 				if i == 23:
 					patch['modulator_decay_rate_one'] = tempv + v
 				if i == 24:
@@ -97,19 +97,19 @@ class PortaSound:
 					else:
 						patch['carrier_coarse_detune_enable'] = False
 					mask = ~(3 << 2)
-					tempv = (v | mask) << 4
+					tempv = (v & mask) << 4
 				if i == 25:
 					patch['carrier_decay_rate_one'] = tempv + v
 				if i == 26:
 					patch['modulator_sine_table'] = v >> 2
 					mask = ~(3 << 2)
-					tempv = (v | mask) << 4 
+					tempv = (v & mask) << 4 
 				if i == 27:
 					patch['modulator_decay_rate_two'] = tempv + v
 				if i == 28:
 					patch['carrier_sine_table'] = v >> 2
 					mask = ~(3 << 2)
-					tempv = (v | mask) << 4 
+					tempv = (v & mask) << 4 
 				if i == 29:
 					patch['carrier_decay_rate_two'] = tempv + v
 				if i == 30:
