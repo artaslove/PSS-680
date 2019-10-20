@@ -5,7 +5,7 @@ This is a program to create and verify five random patches for the Yamaha PortaS
 
 Work in progress. Just starting on a GUI.  
 
-Python3, Qt5, PySide2
+Python3.2+, Qt5, PySide2
 
 To send patches, for example under linux: amidi -p hw:1,0,0 -s random_test.syx
 
