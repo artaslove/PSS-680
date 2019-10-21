@@ -66,14 +66,14 @@ class PortaSound:
 				if i == 21:
 					patch['carrier_attack_rate'] = tempv + v					
 				if i == 22:
-					mask = 1 << 4
-					tempv = v | mask
+					mask = 1 << 3
+					tempv = v & mask
 					if tempv > 0:
 						patch['modulator_amplitude_modulation_enable'] = True
 					else:
 						patch['modulator_amplitude_modulation_enable'] = False
-					mask = 1 << 3
-					tempv = v | mask
+					mask = 1 << 2
+					tempv = v & mask
 					if tempv > 0:
 						patch['modulator_coarse_detune_enable'] = True
 					else:
@@ -83,14 +83,14 @@ class PortaSound:
 				if i == 23:
 					patch['modulator_decay_rate_one'] = tempv + v
 				if i == 24:
-					mask = 1 << 4
-					tempv = v | mask
+					mask = 1 << 3
+					tempv = v & mask
 					if tempv > 0:
 						patch['carrier_amplitude_modulation_enable'] = True
 					else:
 						patch['carrier_amplitude_modulation_enable'] = False
-					mask = 1 << 3
-					tempv = v | mask
+					mask = 1 << 2
+					tempv = v & mask
 					if tempv > 0:
 						patch['carrier_coarse_detune_enable'] = True
 					else:
@@ -153,15 +153,16 @@ class PortaSound:
 					patch['vibrato_delay_time'] = tempv + v
 				if i == 51: 							
 					patch['mystery_byte_nine'] = v 							
-				if i == 60:
-					mask = 1 << 4
-					tempv = v | mask
+				if i == 52:
+					print(str(v))
+					mask = 1 << 3
+					tempv = v & mask
 					if tempv > 0:
 						patch['vibrato_enable'] = True
 					else:
 						patch['vibrato_enable'] = False
-					mask = 1 << 3
-					tempv = v | mask
+					mask = 1 << 2
+					tempv = v & mask
 					if tempv > 0:
 						patch['sustain_enable'] = True
 					else:
@@ -169,6 +170,8 @@ class PortaSound:
 				if i == 71:
 					i = -1
 					patches.append(patch)
+					for key in sorted(patch.keys()):
+						print("%s: %s" % (key, patch[key]))
 					patch = {}
 				i = i + 1			
 			return patches
@@ -432,5 +435,4 @@ if __name__ == '__main__':
 	thelabel = QLabel(label)
 	thelabel.show()
 	app.exec_()
-	# print(str(patches))
 
