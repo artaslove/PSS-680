@@ -347,10 +347,10 @@ class PortaSound:
 			v = patch['carrier_attack_rate'] & mask
 			checksum = self.writepatchchar(f,v,checksum)
 			v = patch['modulator_decay_rate_one'] >> 4
-			mask = 1 << 4
+			mask = 1 << 3
 			if patch['modulator_amplitude_modulation_enable'] == True:
 				v = v | mask
-			mask = 1 << 3
+			mask = 1 << 2
 			if patch['modulator_coarse_detune_enable'] == True:
 				v = v | mask
 			checksum = self.writepatchchar(f,v,checksum)
@@ -358,10 +358,10 @@ class PortaSound:
 			v = patch['modulator_decay_rate_one'] & mask
 			checksum = self.writepatchchar(f,v,checksum)
 			v = patch['carrier_decay_rate_one'] >> 4
-			mask = 1 << 4
+			mask = 1 << 3
 			if patch['carrier_amplitude_modulation_enable'] == True:
 				v = v | mask
-			mask = 1 << 3
+			mask = 1 << 2
 			if patch['carrier_coarse_detune_enable'] == True:
 				v = v | mask
 			checksum = self.writepatchchar(f,v,checksum)
@@ -401,16 +401,16 @@ class PortaSound:
 			checksum = self.writepatchchar(f,patch['carrier_sustain_release_rate'],checksum)
 			v = patch['vibrato_delay_time'] >> 4
 			checksum = self.writepatchchar(f,v,checksum)
-			mask = ~(3 << 4)
+			mask = ~(7 << 4)
 			v = patch['vibrato_delay_time'] & mask
 			checksum = self.writepatchchar(f,v,checksum)
 			f.write((0).to_bytes(1, byteorder="little"))
 			checksum = self.writepatchchar(f,patch['mystery_byte_nine'],checksum) 
 			v = 0
-			mask = 1 << 4
+			mask = 1 << 3
 			if patch['vibrato_enable'] == True:
 				v = v | mask
-			mask = 1 << 3
+			mask = 1 << 2
 			if patch['sustain_enable'] == True:
 				v = v | mask
 			checksum = self.writepatchchar(f,v,checksum)
