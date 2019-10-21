@@ -47,13 +47,13 @@ class PortaSound(QDialog):
 				if i == 13:
 					patch['carrier_total_level'] = tempv + v
 				if i == 14:
-					patch['modulator_key_scaling_high'] = v
+					patch['modulator_level_key_scaling_high'] = v
 				if i == 15:
-					patch['modulator_key_scaling_low'] = v
+					patch['modulator_level_key_scaling_low'] = v
 				if i == 16:
-					patch['carrier_key_scaling_high'] = v
+					patch['carrier_level_key_scaling_high'] = v
 				if i == 17:
-					patch['carrier_key_scaling_low'] = v
+					patch['carrier_level_key_scaling_low'] = v
 				if i == 18:					
 					patch['modulator_rate_key_scaling'] = v >> 2
 					mask = ~(3 << 2)
@@ -82,7 +82,7 @@ class PortaSound(QDialog):
 					mask = ~(3 << 2)
 					tempv = (v & mask) << 4
 				if i == 23:
-					patch['modulator_decay_rate_one'] = tempv + v
+					patch['modulator_decay_rate_1'] = tempv + v
 				if i == 24:
 					mask = 1 << 3
 					tempv = v & mask
@@ -99,25 +99,25 @@ class PortaSound(QDialog):
 					mask = ~(3 << 2)
 					tempv = (v & mask) << 4
 				if i == 25:
-					patch['carrier_decay_rate_one'] = tempv + v
+					patch['carrier_decay_rate_1'] = tempv + v
 				if i == 26:
 					patch['modulator_sine_table'] = v >> 2
 					mask = ~(3 << 2)
 					tempv = (v & mask) << 4 
 				if i == 27:
-					patch['modulator_decay_rate_two'] = tempv + v
+					patch['modulator_decay_rate_2'] = tempv + v
 				if i == 28:
 					patch['carrier_sine_table'] = v >> 2
 					mask = ~(3 << 2)
 					tempv = (v & mask) << 4 
 				if i == 29:
-					patch['carrier_decay_rate_two'] = tempv + v
+					patch['carrier_decay_rate_2'] = tempv + v
 				if i == 30:
-					patch['modulator_decay_level_one'] = v
+					patch['modulator_decay_level'] = v
 				if i == 31:
 					patch['modulator_release_rate'] = v
 				if i == 32:
-					patch['carrier_decay_level_one'] = v
+					patch['carrier_decay_level'] = v
 				if i == 33:
 					patch['carrier_release_rate'] = v
 				if i == 34:
@@ -129,23 +129,23 @@ class PortaSound(QDialog):
 				if i == 37:
 					patch['amplitude_modulation_sensitivity'] = v
 				if i == 38:
-					patch['mystery_byte_one'] = v 							
+					patch['mystery_byte_1'] = v 							
 				if i == 39:
-					patch['mystery_byte_two'] = v 							
+					patch['mystery_byte_2'] = v 							
 				if i == 40:
-					patch['mystery_byte_three'] = v 							
+					patch['mystery_byte_3'] = v 							
 				if i == 41:
-					patch['mystery_byte_four'] = v 							
+					patch['mystery_byte_4'] = v 							
 				if i == 42:
-					patch['mystery_byte_five'] = v 							
+					patch['mystery_byte_5'] = v 							
 				if i == 43:
-					patch['mystery_byte_six'] = v 							
+					patch['mystery_byte_6'] = v 							
 				if i == 44:
-					patch['mystery_byte_seven'] = v 							
+					patch['mystery_byte_7'] = v 							
 				if i == 45:
 					patch['modulator_sustain_release_rate'] = v 							
 				if i == 46:
-					patch['mystery_byte_eight'] = v 							
+					patch['mystery_byte_8'] = v 							
 				if i == 47:
 					patch['carrier_sustain_release_rate'] = v 							
 				if i == 48:
@@ -153,7 +153,7 @@ class PortaSound(QDialog):
 				if i == 49:
 					patch['vibrato_delay_time'] = tempv + v
 				if i == 51: 							
-					patch['mystery_byte_nine'] = v 							
+					patch['mystery_byte_9'] = v 							
 				if i == 52:
 					mask = 1 << 3
 					tempv = v & mask
@@ -333,10 +333,10 @@ class PortaSound(QDialog):
 			mask = ~(7 << 4)
 			v = patch['carrier_total_level'] & mask
 			checksum = self.writepatchchar(f,v,checksum)
-			checksum = self.writepatchchar(f,patch['modulator_key_scaling_high'],checksum)
-			checksum = self.writepatchchar(f,patch['modulator_key_scaling_low'],checksum)
-			checksum = self.writepatchchar(f,patch['carrier_key_scaling_high'],checksum)
-			checksum = self.writepatchchar(f,patch['carrier_key_scaling_low'],checksum)
+			checksum = self.writepatchchar(f,patch['modulator_level_key_scaling_high'],checksum)
+			checksum = self.writepatchchar(f,patch['modulator_level_key_scaling_low'],checksum)
+			checksum = self.writepatchchar(f,patch['carrier_level_key_scaling_high'],checksum)
+			checksum = self.writepatchchar(f,patch['carrier_level_key_scaling_low'],checksum)
 			v = (patch['modulator_rate_key_scaling'] << 2) + (patch['modulator_attack_rate'] >> 4)
 			checksum = self.writepatchchar(f,v,checksum)
 			mask = ~(3 << 4)
@@ -347,7 +347,7 @@ class PortaSound(QDialog):
 			mask = ~(3 << 4)
 			v = patch['carrier_attack_rate'] & mask
 			checksum = self.writepatchchar(f,v,checksum)
-			v = patch['modulator_decay_rate_one'] >> 4
+			v = patch['modulator_decay_rate_1'] >> 4
 			mask = 1 << 3
 			if patch['modulator_amplitude_modulation_enable'] == True:
 				v = v | mask
@@ -356,9 +356,9 @@ class PortaSound(QDialog):
 				v = v | mask
 			checksum = self.writepatchchar(f,v,checksum)
 			mask = ~(3 << 4)
-			v = patch['modulator_decay_rate_one'] & mask
+			v = patch['modulator_decay_rate_1'] & mask
 			checksum = self.writepatchchar(f,v,checksum)
-			v = patch['carrier_decay_rate_one'] >> 4
+			v = patch['carrier_decay_rate_1'] >> 4
 			mask = 1 << 3
 			if patch['carrier_amplitude_modulation_enable'] == True:
 				v = v | mask
@@ -367,21 +367,21 @@ class PortaSound(QDialog):
 				v = v | mask
 			checksum = self.writepatchchar(f,v,checksum)
 			mask = ~(3 << 4)
-			v = patch['carrier_decay_rate_one'] & mask
+			v = patch['carrier_decay_rate_1'] & mask
 			checksum = self.writepatchchar(f,v,checksum)
-			v = (patch['modulator_sine_table'] << 2) + (patch['modulator_decay_rate_two'] >> 4)
-			checksum = self.writepatchchar(f,v,checksum)
-			mask = ~(3 << 4)
-			v = patch['modulator_decay_rate_two'] & mask
-			checksum = self.writepatchchar(f,v,checksum)
-			v = (patch['carrier_sine_table'] << 2) + (patch['carrier_decay_rate_two'] >> 4)
+			v = (patch['modulator_sine_table'] << 2) + (patch['modulator_decay_rate_2'] >> 4)
 			checksum = self.writepatchchar(f,v,checksum)
 			mask = ~(3 << 4)
-			v = patch['carrier_decay_rate_two'] & mask
+			v = patch['modulator_decay_rate_2'] & mask
 			checksum = self.writepatchchar(f,v,checksum)
-			checksum = self.writepatchchar(f,patch['modulator_decay_level_one'],checksum)
+			v = (patch['carrier_sine_table'] << 2) + (patch['carrier_decay_rate_2'] >> 4)
+			checksum = self.writepatchchar(f,v,checksum)
+			mask = ~(3 << 4)
+			v = patch['carrier_decay_rate_2'] & mask
+			checksum = self.writepatchchar(f,v,checksum)
+			checksum = self.writepatchchar(f,patch['modulator_decay_level'],checksum)
 			checksum = self.writepatchchar(f,patch['modulator_release_rate'],checksum)
-			checksum = self.writepatchchar(f,patch['carrier_decay_level_one'],checksum)
+			checksum = self.writepatchchar(f,patch['carrier_decay_level'],checksum)
 			checksum = self.writepatchchar(f,patch['carrier_release_rate'],checksum)
 			v = patch['feedback'] >> 1
 			checksum = self.writepatchchar(f,v,checksum)
@@ -390,15 +390,15 @@ class PortaSound(QDialog):
 			checksum = self.writepatchchar(f,v,checksum)
 			checksum = self.writepatchchar(f,patch['pitch_modulation_sensitivity'],checksum)
 			checksum = self.writepatchchar(f,patch['amplitude_modulation_sensitivity'],checksum)
-			checksum = self.writepatchchar(f,patch['mystery_byte_one'],checksum)
-			checksum = self.writepatchchar(f,patch['mystery_byte_two'],checksum)
-			checksum = self.writepatchchar(f,patch['mystery_byte_three'],checksum)
-			checksum = self.writepatchchar(f,patch['mystery_byte_four'],checksum)
-			checksum = self.writepatchchar(f,patch['mystery_byte_five'],checksum)
-			checksum = self.writepatchchar(f,patch['mystery_byte_six'],checksum)
-			checksum = self.writepatchchar(f,patch['mystery_byte_seven'],checksum)
+			checksum = self.writepatchchar(f,patch['mystery_byte_1'],checksum)
+			checksum = self.writepatchchar(f,patch['mystery_byte_2'],checksum)
+			checksum = self.writepatchchar(f,patch['mystery_byte_3'],checksum)
+			checksum = self.writepatchchar(f,patch['mystery_byte_4'],checksum)
+			checksum = self.writepatchchar(f,patch['mystery_byte_5'],checksum)
+			checksum = self.writepatchchar(f,patch['mystery_byte_6'],checksum)
+			checksum = self.writepatchchar(f,patch['mystery_byte_7'],checksum)
 			checksum = self.writepatchchar(f,patch['modulator_sustain_release_rate'],checksum)
-			checksum = self.writepatchchar(f,patch['mystery_byte_eight'],checksum) 
+			checksum = self.writepatchchar(f,patch['mystery_byte_8'],checksum) 
 			checksum = self.writepatchchar(f,patch['carrier_sustain_release_rate'],checksum)
 			v = patch['vibrato_delay_time'] >> 4
 			checksum = self.writepatchchar(f,v,checksum)
@@ -406,7 +406,7 @@ class PortaSound(QDialog):
 			v = patch['vibrato_delay_time'] & mask
 			checksum = self.writepatchchar(f,v,checksum)
 			f.write((0).to_bytes(1, byteorder="little"))
-			checksum = self.writepatchchar(f,patch['mystery_byte_nine'],checksum) 
+			checksum = self.writepatchchar(f,patch['mystery_byte_9'],checksum) 
 			v = 0
 			mask = 1 << 3
 			if patch['vibrato_enable'] == True:
@@ -425,48 +425,276 @@ class PortaSound(QDialog):
 		self.bankComboBox = QComboBox()
 		self.bankComboBox.addItems(["0","1","2","3","4"])
 		self.bank = 0
-
 		bankLabel = QLabel("&Bank:")
 		bankLabel.setBuddy(self.bankComboBox)
 		self.bankComboBox.activated[str].connect(self.changeBank)
 
 		self.carrierBox = QGroupBox("Carrier")
 
-		#carrier_amplitude_modulation_enable: True or False
-		#carrier_attack_rate: 0-63 
-		#carrier_coarse_detune_enable: True or False
-		#carrier_decay_level_one: 0-15
-		#carrier_decay_rate_one: 0-63
-		#carrier_decay_rate_two: 0-63
-		#carrier_fine_detune: -7 +7, bit 4 is sign bit
-		#carrier_frequency_multiple: 0-15
-		#carrier_key_scaling_high: 0-15		# crazy diagram
-		#carrier_key_scaling_low: 0-15		# less crazy
-		#carrier_rate_key_scaling: 0-4
-		#carrier_release_rate: 0-15
-		#carrier_sine_table: 0-4
-		#carrier_sustain_release_rate: 0-15
-		#carrier_total_level: 0-99		# it's backwards
+		self.cstComboBox = QComboBox()
+		self.cstComboBox.addItems(["Sine","Squared Sine","Half Sine","Squared Half Sine"])
+		cstLabel = QLabel("Waveform:")
+		cstLabel.setBuddy(self.cstComboBox)
+		self.cstComboBox.activated[str].connect(self.changeCST)
+
+		self.ccdetune = QCheckBox("Coarse Detune")
+		self.ccdetune.toggled.connect(self.changeCCDetune)
+
+		self.cfdetuneSlider = QSlider(Qt.Horizontal)
+		self.cfdetuneSlider.setMinimum(0)
+		self.cfdetuneSlider.setMaximum(15)
+		self.cfdetuneSlider.setTickPosition(QSlider.TicksBelow)
+		self.cfdetuneSlider.setTickInterval(8)
+		cfdetuneLabel = QLabel("Fine Detune:")
+		cfdetuneLabel.setBuddy(self.cfdetuneSlider)		
+		self.cfdetuneSlider.valueChanged.connect(self.changeCFDetune)
+
+		self.cfmultSlider = QSlider(Qt.Horizontal)
+		self.cfmultSlider.setMinimum(0)
+		self.cfmultSlider.setMaximum(15)
+		cfmultLabel = QLabel("Frequency Muliplier:")
+		cfmultLabel.setBuddy(self.cfmultSlider)		
+		self.cfmultSlider.valueChanged.connect(self.changeCFMult)
+
+		self.campmod = QCheckBox("Amplitude Modulation")
+		self.campmod.toggled.connect(self.changeCAmpMod)
+
+		self.ctlevelSlider = QSlider(Qt.Horizontal)
+		self.ctlevelSlider.setMinimum(0)
+		self.ctlevelSlider.setMaximum(99)
+		self.ctlevelSlider.setInvertedAppearance(True)
+		ctlevelLabel = QLabel("Total Level:")
+		ctlevelLabel.setBuddy(self.ctlevelSlider)		
+		self.ctlevelSlider.valueChanged.connect(self.changeCTLevel)
+
+		self.carateSlider = QSlider(Qt.Horizontal)
+		self.carateSlider.setMinimum(0)
+		self.carateSlider.setMaximum(63)
+		carateLabel = QLabel("Attack Rate:")
+		carateLabel.setBuddy(self.carateSlider)		
+		self.carateSlider.valueChanged.connect(self.changeCARate)
+
+		self.cdrate1Slider = QSlider(Qt.Horizontal)
+		self.cdrate1Slider.setMinimum(0)
+		self.cdrate1Slider.setMaximum(63)
+		cdrate1Label = QLabel("Decay Rate One:")
+		cdrate1Label.setBuddy(self.cdrate1Slider)		
+		self.cdrate1Slider.valueChanged.connect(self.changeCDRate1)
+
+		self.cdlevelSlider = QSlider(Qt.Horizontal)
+		self.cdlevelSlider.setMinimum(0)
+		self.cdlevelSlider.setMaximum(15)
+		cdlevelLabel = QLabel("Decay Level:")
+		cdlevelLabel.setBuddy(self.cdlevelSlider)		
+		self.cdlevelSlider.valueChanged.connect(self.changeCDLevel)
+
+		self.cdrate2Slider = QSlider(Qt.Horizontal)
+		self.cdrate2Slider.setMinimum(0)
+		self.cdrate2Slider.setMaximum(63)
+		cdrate2Label = QLabel("Decay Rate Two:")
+		cdrate2Label.setBuddy(self.cdrate2Slider)		
+		self.cdrate2Slider.valueChanged.connect(self.changeCDRate2)
+
+		self.crrateSlider = QSlider(Qt.Horizontal)
+		self.crrateSlider.setMinimum(0)
+		self.crrateSlider.setMaximum(15)
+		crrateLabel = QLabel("Release Rate:")
+		crrateLabel.setBuddy(self.crrateSlider)		
+		self.crrateSlider.valueChanged.connect(self.changeCRRate)
+
+		self.csrrateSlider = QSlider(Qt.Horizontal)
+		self.csrrateSlider.setMinimum(0)
+		self.csrrateSlider.setMaximum(15)
+		csrrateLabel = QLabel("Sustain Release Rate:")
+		csrrateLabel.setBuddy(self.csrrateSlider)		
+		self.csrrateSlider.valueChanged.connect(self.changeCSRRate)
+
+		self.crateksSlider = QSlider(Qt.Horizontal)
+		self.crateksSlider.setMinimum(0)
+		self.crateksSlider.setMaximum(15)
+		crateksLabel = QLabel("Rate Key Scaling:")
+		crateksLabel.setBuddy(self.crateksSlider)		
+		self.crateksSlider.valueChanged.connect(self.changeCRateKS)
+
+		self.clevelkshSlider = QSlider(Qt.Horizontal)
+		self.clevelkshSlider.setMinimum(0)
+		self.clevelkshSlider.setMaximum(15)
+		clevelkshLabel = QLabel("Level Key Scaling High:")
+		clevelkshLabel.setBuddy(self.clevelkshSlider)		
+		self.clevelkshSlider.valueChanged.connect(self.changeCLevelKSH)
+
+		self.clevelkslSlider = QSlider(Qt.Horizontal)
+		self.clevelkslSlider.setMinimum(0)
+		self.clevelkslSlider.setMaximum(15)
+		clevelkslLabel = QLabel("Level Key Scaling Low:")
+		clevelkslLabel.setBuddy(self.clevelkslSlider)		
+		self.clevelkslSlider.valueChanged.connect(self.changeCLevelKSL)
+
+		carrierboxlayout = QVBoxLayout()
+		carrierboxlayout.addWidget(cstLabel)
+		carrierboxlayout.addWidget(self.cstComboBox)
+		carrierboxlayout.addWidget(self.ccdetune)
+		carrierboxlayout.addWidget(cfdetuneLabel)
+		carrierboxlayout.addWidget(self.cfdetuneSlider)
+		carrierboxlayout.addWidget(cfmultLabel)
+		carrierboxlayout.addWidget(self.cfmultSlider)
+		carrierboxlayout.addWidget(self.campmod)
+		carrierboxlayout.addWidget(ctlevelLabel)
+		carrierboxlayout.addWidget(self.ctlevelSlider)
+		carrierboxlayout.addWidget(carateLabel)
+		carrierboxlayout.addWidget(self.carateSlider)
+		carrierboxlayout.addWidget(cdrate1Label)
+		carrierboxlayout.addWidget(self.cdrate1Slider)
+		carrierboxlayout.addWidget(cdlevelLabel)
+		carrierboxlayout.addWidget(self.cdlevelSlider)
+		carrierboxlayout.addWidget(cdrate2Label)
+		carrierboxlayout.addWidget(self.cdrate2Slider)
+		carrierboxlayout.addWidget(crrateLabel)
+		carrierboxlayout.addWidget(self.crrateSlider)
+		carrierboxlayout.addWidget(csrrateLabel)
+		carrierboxlayout.addWidget(self.csrrateSlider)
+		carrierboxlayout.addWidget(crateksLabel)
+		carrierboxlayout.addWidget(self.crateksSlider)
+		carrierboxlayout.addWidget(clevelkshLabel)
+		carrierboxlayout.addWidget(self.clevelkshSlider)
+		carrierboxlayout.addWidget(clevelkslLabel)
+		carrierboxlayout.addWidget(self.clevelkslSlider)
+		carrierboxlayout.addStretch(1)
+		self.carrierBox.setLayout(carrierboxlayout)
 
 		self.modulatorBox = QGroupBox("Modulator")
 
-		#modulator_amplitude_modulation_enable: True or False
-		#modulator_attack_rate: 0-63 
-		#modulator_coarse_detune_enable: True or False
-		#modulator_decay_level_one: 0-15
-		#modulator_decay_rate_one: 0-63
-		#modulator_decay_rate_two: 0-63
-		#modulator_fine_detune: -7 +7, bit 4 is sign bit
-		#modulator_frequency_multiple: 0-15
-		#modulator_key_scaling_high: 0-15
-		#modulator_key_scaling_low: 3
-		#modulator_rate_key_scaling: 0-4
-		#modulator_release_rate: 0-15
-		#modulator_sine_table: 0-4
-		#modulator_sustain_release_rate: 0-15
-		#modulator_total_level: 0-99
+		self.mstComboBox = QComboBox()
+		self.mstComboBox.addItems(["Sine","Squared Sine","Half Sine","Squared Half Sine"])
+		mstLabel = QLabel("Waveform:")
+		mstLabel.setBuddy(self.mstComboBox)
+		self.mstComboBox.activated[str].connect(self.changeMST)
 
-		#feedback: 0-7
+		self.mcdetune = QCheckBox("Coarse Detune")
+		self.mcdetune.toggled.connect(self.changeMCDetune)
+
+		self.mfdetuneSlider = QSlider(Qt.Horizontal)
+		self.mfdetuneSlider.setMinimum(0)
+		self.mfdetuneSlider.setMaximum(15)
+		self.mfdetuneSlider.setTickPosition(QSlider.TicksBelow)
+		self.mfdetuneSlider.setTickInterval(8)
+		mfdetuneLabel = QLabel("Fine Detune:")
+		mfdetuneLabel.setBuddy(self.mfdetuneSlider)		
+		self.mfdetuneSlider.valueChanged.connect(self.changeMFDetune)
+
+		self.mfmultSlider = QSlider(Qt.Horizontal)
+		self.mfmultSlider.setMinimum(0)
+		self.mfmultSlider.setMaximum(15)
+		mfmultLabel = QLabel("Frequency Muliplier:")
+		mfmultLabel.setBuddy(self.mfmultSlider)		
+		self.mfmultSlider.valueChanged.connect(self.changeMFMult)
+
+		self.mampmod = QCheckBox("Amplitude Modulation")
+		self.mampmod.toggled.connect(self.changeMAmpMod)
+
+		self.mtlevelSlider = QSlider(Qt.Horizontal)
+		self.mtlevelSlider.setMinimum(0)
+		self.mtlevelSlider.setMaximum(99)
+		self.mtlevelSlider.setInvertedAppearance(True)
+		mtlevelLabel = QLabel("Total Level:")
+		mtlevelLabel.setBuddy(self.mtlevelSlider)		
+		self.mtlevelSlider.valueChanged.connect(self.changeMTLevel)
+
+		self.marateSlider = QSlider(Qt.Horizontal)
+		self.marateSlider.setMinimum(0)
+		self.marateSlider.setMaximum(63)
+		marateLabel = QLabel("Attack Rate:")
+		marateLabel.setBuddy(self.marateSlider)		
+		self.marateSlider.valueChanged.connect(self.changeMARate)
+
+		self.mdrate1Slider = QSlider(Qt.Horizontal)
+		self.mdrate1Slider.setMinimum(0)
+		self.mdrate1Slider.setMaximum(63)
+		mdrate1Label = QLabel("Decay Rate One:")
+		mdrate1Label.setBuddy(self.mdrate1Slider)		
+		self.mdrate1Slider.valueChanged.connect(self.changeMDRate1)
+
+		self.mdlevelSlider = QSlider(Qt.Horizontal)
+		self.mdlevelSlider.setMinimum(0)
+		self.mdlevelSlider.setMaximum(15)
+		mdlevelLabel = QLabel("Decay Level:")
+		mdlevelLabel.setBuddy(self.mdlevelSlider)		
+		self.mdlevelSlider.valueChanged.connect(self.changeMDLevel)
+
+		self.mdrate2Slider = QSlider(Qt.Horizontal)
+		self.mdrate2Slider.setMinimum(0)
+		self.mdrate2Slider.setMaximum(63)
+		mdrate2Label = QLabel("Decay Rate Two:")
+		mdrate2Label.setBuddy(self.mdrate2Slider)		
+		self.mdrate2Slider.valueChanged.connect(self.changeMDRate2)
+
+		self.mrrateSlider = QSlider(Qt.Horizontal)
+		self.mrrateSlider.setMinimum(0)
+		self.mrrateSlider.setMaximum(15)
+		mrrateLabel = QLabel("Release Rate:")
+		mrrateLabel.setBuddy(self.mrrateSlider)		
+		self.mrrateSlider.valueChanged.connect(self.changeMRRate)
+
+		self.msrrateSlider = QSlider(Qt.Horizontal)
+		self.msrrateSlider.setMinimum(0)
+		self.msrrateSlider.setMaximum(15)
+		msrrateLabel = QLabel("Sustain Release Rate:")
+		msrrateLabel.setBuddy(self.msrrateSlider)		
+		self.msrrateSlider.valueChanged.connect(self.changeMSRRate)
+
+		self.mrateksSlider = QSlider(Qt.Horizontal)
+		self.mrateksSlider.setMinimum(0)
+		self.mrateksSlider.setMaximum(15)
+		mrateksLabel = QLabel("Rate Key Scaling:")
+		mrateksLabel.setBuddy(self.mrateksSlider)		
+		self.mrateksSlider.valueChanged.connect(self.changeMRateKS)
+
+		self.mlevelkshSlider = QSlider(Qt.Horizontal)
+		self.mlevelkshSlider.setMinimum(0)
+		self.mlevelkshSlider.setMaximum(15)
+		mlevelkshLabel = QLabel("Level Key Scaling High:")
+		mlevelkshLabel.setBuddy(self.mlevelkshSlider)		
+		self.mlevelkshSlider.valueChanged.connect(self.changeMLevelKSH)
+
+		self.mlevelkslSlider = QSlider(Qt.Horizontal)
+		self.mlevelkslSlider.setMinimum(0)
+		self.mlevelkslSlider.setMaximum(15)
+		mlevelkslLabel = QLabel("Level Key Scaling Low:")
+		mlevelkslLabel.setBuddy(self.mlevelkslSlider)		
+		self.mlevelkslSlider.valueChanged.connect(self.changeMLevelKSL)
+
+		modulatorboxlayout = QVBoxLayout()
+		modulatorboxlayout.addWidget(mstLabel)
+		modulatorboxlayout.addWidget(self.mstComboBox)
+		modulatorboxlayout.addWidget(self.mcdetune)
+		modulatorboxlayout.addWidget(mfdetuneLabel)
+		modulatorboxlayout.addWidget(self.mfdetuneSlider)
+		modulatorboxlayout.addWidget(mfmultLabel)
+		modulatorboxlayout.addWidget(self.mfmultSlider)
+		modulatorboxlayout.addWidget(self.mampmod)
+		modulatorboxlayout.addWidget(mtlevelLabel)
+		modulatorboxlayout.addWidget(self.mtlevelSlider)
+		modulatorboxlayout.addWidget(marateLabel)
+		modulatorboxlayout.addWidget(self.marateSlider)
+		modulatorboxlayout.addWidget(mdrate1Label)
+		modulatorboxlayout.addWidget(self.mdrate1Slider)
+		modulatorboxlayout.addWidget(mdlevelLabel)
+		modulatorboxlayout.addWidget(self.mdlevelSlider)
+		modulatorboxlayout.addWidget(mdrate2Label)
+		modulatorboxlayout.addWidget(self.mdrate2Slider)
+		modulatorboxlayout.addWidget(mrrateLabel)
+		modulatorboxlayout.addWidget(self.mrrateSlider)
+		modulatorboxlayout.addWidget(msrrateLabel)
+		modulatorboxlayout.addWidget(self.msrrateSlider)
+		modulatorboxlayout.addWidget(mrateksLabel)
+		modulatorboxlayout.addWidget(self.mrateksSlider)
+		modulatorboxlayout.addWidget(mlevelkshLabel)
+		modulatorboxlayout.addWidget(self.mlevelkshSlider)
+		modulatorboxlayout.addWidget(mlevelkslLabel)
+		modulatorboxlayout.addWidget(self.mlevelkslSlider)
+		modulatorboxlayout.addStretch(1)
+		self.modulatorBox.setLayout(modulatorboxlayout)
+		
 		self.feedbackSlider = QSlider(Qt.Horizontal)
 		self.feedbackSlider.setMinimum(0)
 		self.feedbackSlider.setMaximum(7)
@@ -474,41 +702,53 @@ class PortaSound(QDialog):
 		feedbackLabel.setBuddy(self.feedbackSlider)		
 		self.feedbackSlider.valueChanged.connect(self.changeFeedback)
 
-		#pitch_modulation_sensitivity: 0-7
 		self.pitchmodSlider = QSlider(Qt.Horizontal)
 		self.pitchmodSlider.setMinimum(0)
 		self.pitchmodSlider.setMaximum(7)
-		pitchmodLabel = QLabel("&Pitch Modulation:")
+		pitchmodLabel = QLabel("&Pitch Modulation Sensitivity:")
 		pitchmodLabel.setBuddy(self.pitchmodSlider)
 		self.pitchmodSlider.valueChanged.connect(self.changePitchMod)
 
-		#sustain_enable: True or False
-		#vibrato_delay_time: 0-127?
-		#vibrato_enable: True or False
+		self.vibdelaySlider = QSlider(Qt.Horizontal)
+		self.vibdelaySlider.setMinimum(0)
+		self.vibdelaySlider.setMaximum(127)
+		vibdelayLabel = QLabel("&Vibrato Delay Time:")
+		vibdelayLabel.setBuddy(self.vibdelaySlider)
+		self.vibdelaySlider.valueChanged.connect(self.changeVibDelay)
+
+		self.sustain = QCheckBox("&Sustain Enable")
+		self.sustain.toggled.connect(self.changeSustain)
+
+		self.vibrato = QCheckBox("V&ibrato Enable")
+		self.vibrato.toggled.connect(self.changeVibrato)
 
 		self.unknownBox = QGroupBox("Mystery Bytes")
 
-		#mystery_byte_one: 9 10
-		#mystery_byte_two: 14 15
-		#mystery_byte_three: 0 1
-		#mystery_byte_four: 0 7 11
-		#mystery_byte_five: 2 6 14
-		#mystery_byte_six: 13 14 15
-		#mystery_byte_seven: 0 4 5 6 15
-		#mystery_byte_eight: 5 6 7 9 15
-		#mystery_byte_nine: 0 1 3 4 5 7 8 11
+		#mystery_byte_1: 9 10
+		#mystery_byte_2: 14 15
+		#mystery_byte_3: 0 1
+		#mystery_byte_4: 0 7 11
+		#mystery_byte_5: 2 6 14
+		#mystery_byte_6: 13 14 15
+		#mystery_byte_7: 0 4 5 6 15
+		#mystery_byte_8: 5 6 7 9 15
+		#mystery_byte_9: 0 1 3 4 5 7 8 11
 
 		topLayout = QHBoxLayout()
 		topLayout.addWidget(bankLabel)
 		topLayout.addWidget(self.bankComboBox)
 		topLayout.addStretch(1)
 
-		bottomBox = QHBoxLayout()
+		bottomBox = QVBoxLayout()
 		bottomBox.addWidget(feedbackLabel)
 		bottomBox.addWidget(self.feedbackSlider)
 		bottomBox.addWidget(pitchmodLabel)
 		bottomBox.addWidget(self.pitchmodSlider)
-		topLayout.addStretch(1)
+		bottomBox.addWidget(vibdelayLabel)
+		bottomBox.addWidget(self.vibdelaySlider)
+		bottomBox.addWidget(self.vibrato)		
+		bottomBox.addWidget(self.sustain)
+		bottomBox.addStretch(1)
 
 
 		mainLayout = QGridLayout()
@@ -516,71 +756,186 @@ class PortaSound(QDialog):
 		mainLayout.addWidget(self.carrierBox, 1, 0)		
 		mainLayout.addWidget(self.modulatorBox, 1, 1)		
 		mainLayout.addWidget(self.unknownBox, 1, 2)
-		mainLayout.addLayout(bottomBox, 2, 0, 1, 2)		
+		mainLayout.addLayout(bottomBox, 2, 0, 1, 3)
+		mainLayout.setRowStretch(2,1)		
 
 		self.setLayout(mainLayout)
 		self.setWindowTitle("PortaSound PSS-680 patch editor")
 
 	def changeFeedback(self):
 		self.patches[self.bank]['feedback'] = self.feedbackSlider.value()
-		print(str(self.feedbackSlider.value()))
 
 	def changePitchMod(self):
 		self.patches[self.bank]['pitch_modulation_sensitivity'] = self.pitchmodSlider.value()
+
+	def changeVibDelay(self):
+		self.patches[self.bank]['vibrato_delay_time'] = self.vibdelaySlider.value()
+
+	def changeSustain(self):
+		self.patches[self.bank]['sustain_enable'] = self.sustain.checkState()
+
+	def changeVibrato(self):
+		self.patches[self.bank]['vibrato_enable'] = self.vibrato.checkState()
+
+
+	def changeCST(self):
+		self.patches[self.bank]['carrier_sine_table'] = self.cstComboBox.currentIndex()
+
+	def changeCCDetune(self):
+		self.patches[self.bank]['carrier_coarse_detune'] = self.ccdetune.checkState()
+
+	def changeCFDetune(self):
+		self.patches[self.bank]['carrier_fine_detune'] = self.cfdetuneSlider.value()
+
+	def changeCFMult(self):
+		self.patches[self.bank]['carrier_frequency_multiple'] = self.cfmultSlider.value()
+
+	def changeCAmpMod(self):
+		self.patches[self.bank]['carrier_amplitude_modulation_enable'] = self.campmod.checkState()
+
+	def changeCTLevel(self):
+		self.patches[self.bank]['carrier_total_level'] = self.ctlevelSlider.value()
+	
+	def changeCARate(self):
+		self.patches[self.bank]['carrier_attack_rate'] = self.carateSlider.value()
+
+	def changeCDRate1(self):
+		self.patches[self.bank]['carrier_decay_rate_1'] = self.cdrate1Slider.value()
+
+	def changeCDLevel(self):
+		self.patches[self.bank]['carrier_decay_level'] = self.cdlevelSlider.value()
+
+	def changeCDRate2(self):
+		self.patches[self.bank]['carrier_decay_rate_2'] = self.cdrate2Slider.value()
+
+	def changeCRRate(self):
+		self.patches[self.bank]['carrier_release_rate'] = self.crrateSlider.value()
+
+	def changeCSRRate(self):
+		self.patches[self.bank]['carrier_sustain_release_rate'] = self.csrrateSlider.value()
+
+	def changeCRateKS(self):
+		self.patches[self.bank]['carrier_rate_key_scaling'] = self.crateksSlider.value()
+
+	def changeCLevelKSH(self):
+		self.patches[self.bank]['carrier_level_key_scaling_high'] = self.clevelkshSlider.value()
+
+	def changeCLevelKSL(self):
+		self.patches[self.bank]['carrier_level_key_scaling_low'] = self.clevelkslSlider.value()
+
+	def changeMST(self):
+		self.patches[self.bank]['modulator_sine_table'] = self.mstComboBox.currentIndex()
+
+	def changeMCDetune(self):
+		self.patches[self.bank]['modulator_coarse_detune'] = self.mcdetune.checkState()
+
+	def changeMFDetune(self):
+		self.patches[self.bank]['modulator_fine_detune'] = self.mfdetuneSlider.value()
+
+	def changeMFMult(self):
+		self.patches[self.bank]['modulator_frequency_multiple'] = self.mfmultSlider.value()
+
+	def changeMAmpMod(self):
+		self.patches[self.bank]['modulator_amplitude_modulation_enable'] = self.mampmod.checkState()
+
+	def changeMTLevel(self):
+		self.patches[self.bank]['modulator_total_level'] = self.mtlevelSlider.value()
+	
+	def changeMARate(self):
+		self.patches[self.bank]['modulator_attack_rate'] = self.marateSlider.value()
+
+	def changeMDRate1(self):
+		self.patches[self.bank]['modulator_decay_rate_1'] = self.mdrate1Slider.value()
+
+	def changeMDLevel(self):
+		self.patches[self.bank]['modulator_decay_level'] = self.mdlevelSlider.value()
+
+	def changeMDRate2(self):
+		self.patches[self.bank]['modulator_decay_rate_2'] = self.mdrate2Slider.value()
+
+	def changeMRRate(self):
+		self.patches[self.bank]['modulator_release_rate'] = self.mrrateSlider.value()
+
+	def changeMSRRate(self):
+		self.patches[self.bank]['modulator_sustain_release_rate'] = self.msrrateSlider.value()
+
+	def changeMRateKS(self):
+		self.patches[self.bank]['modulator_rate_key_scaling'] = self.mrateksSlider.value()
+
+	def changeMLevelKSH(self):
+		self.patches[self.bank]['modulator_level_key_scaling_high'] = self.mlevelkshSlider.value()
+
+	def changeMLevelKSL(self):
+		self.patches[self.bank]['modulator_level_key_scaling_low'] = self.mlevelkslSlider.value()
 
 
 	def changeBank(self):
 		self.bank = int(self.bankComboBox.currentText())
 		self.feedbackSlider.setValue(self.patches[self.bank]['feedback'])
 		self.pitchmodSlider.setValue(self.patches[self.bank]['pitch_modulation_sensitivity'])
+		self.vibdelaySlider.setValue(self.patches[self.bank]['vibrato_delay_time'])
+		self.sustain.setChecked(self.patches[self.bank]['sustain_enable'])
+		self.vibrato.setChecked(self.patches[self.bank]['vibrato_enable'])
+
+		self.cstComboBox.setCurrentIndex(self.patches[self.bank]['carrier_sine_table'])
+		self.ccdetune.setChecked(self.patches[self.bank]['carrier_coarse_detune_enable'])
+		self.cfdetuneSlider.setValue(self.patches[self.bank]['carrier_fine_detune'])
+		self.cfmultSlider.setValue(self.patches[self.bank]['carrier_frequency_multiple'])
+		self.campmod.setChecked(self.patches[self.bank]['carrier_amplitude_modulation_enable'])
+		self.ctlevelSlider.setValue(self.patches[self.bank]['carrier_total_level'])
+		self.carateSlider.setValue(self.patches[self.bank]['carrier_attack_rate'])
+		self.cdrate1Slider.setValue(self.patches[self.bank]['carrier_decay_rate_1'])
+		self.cdlevelSlider.setValue(self.patches[self.bank]['carrier_decay_level'])
+		self.cdrate2Slider.setValue(self.patches[self.bank]['carrier_decay_rate_2'])
+		self.crrateSlider.setValue(self.patches[self.bank]['carrier_release_rate'])
+		self.csrrateSlider.setValue(self.patches[self.bank]['carrier_sustain_release_rate'])
+		self.crateksSlider.setValue(self.patches[self.bank]['carrier_rate_key_scaling'])
+		self.clevelkshSlider.setValue(self.patches[self.bank]['carrier_level_key_scaling_high'])
+		self.clevelkslSlider.setValue(self.patches[self.bank]['carrier_level_key_scaling_low'])
+
+		self.mstComboBox.setCurrentIndex(self.patches[self.bank]['modulator_sine_table'])
+		self.mcdetune.setChecked(self.patches[self.bank]['modulator_coarse_detune_enable'])
+		self.mfdetuneSlider.setValue(self.patches[self.bank]['modulator_fine_detune'])
+		self.mfmultSlider.setValue(self.patches[self.bank]['modulator_frequency_multiple'])
+		self.mampmod.setChecked(self.patches[self.bank]['modulator_amplitude_modulation_enable'])
+		self.mtlevelSlider.setValue(self.patches[self.bank]['modulator_total_level'])
+		self.marateSlider.setValue(self.patches[self.bank]['modulator_attack_rate'])
+		self.mdrate1Slider.setValue(self.patches[self.bank]['modulator_decay_rate_1'])
+		self.mdlevelSlider.setValue(self.patches[self.bank]['modulator_decay_level'])
+		self.mdrate2Slider.setValue(self.patches[self.bank]['modulator_decay_rate_2'])
+		self.mrrateSlider.setValue(self.patches[self.bank]['modulator_release_rate'])
+		self.msrrateSlider.setValue(self.patches[self.bank]['modulator_sustain_release_rate'])
+		self.mrateksSlider.setValue(self.patches[self.bank]['modulator_rate_key_scaling'])
+		self.mlevelkshSlider.setValue(self.patches[self.bank]['modulator_level_key_scaling_high'])
+		self.mlevelkslSlider.setValue(self.patches[self.bank]['modulator_level_key_scaling_low'])
 
 
-		#carrier_amplitude_modulation_enable: True or False
-		#carrier_attack_rate: 0-63 
-		#carrier_coarse_detune_enable: True or False
-		#carrier_decay_level_one: 0-15
-		#carrier_decay_rate_one: 0-63
-		#carrier_decay_rate_two: 0-63
-		#carrier_fine_detune: -7 +7, bit 4 is sign bit
-		#carrier_frequency_multiple: 0-15
-		#carrier_key_scaling_high: 0-15		# crazy diagram
-		#carrier_key_scaling_low: 0-15		# less crazy
-		#carrier_rate_key_scaling: 0-4
-		#carrier_release_rate: 0-15
-		#carrier_sine_table: 0-4
-		#carrier_sustain_release_rate: 0-15
-		#carrier_total_level: 0-99		# it's backwards
+
+		#mystery_byte_1: 9 10
+		#mystery_byte_2: 14 15
+		#mystery_byte_3: 0 1
+		#mystery_byte_4: 0 7 11
+		#mystery_byte_5: 2 6 14
+		#mystery_byte_6: 13 14 15
+		#mystery_byte_7: 0 4 5 6 15
+		#mystery_byte_8: 5 6 7 9 15
+		#mystery_byte_9: 0 1 3 4 5 7 8 11
+
 		#modulator_amplitude_modulation_enable: True or False
 		#modulator_attack_rate: 0-63 
 		#modulator_coarse_detune_enable: True or False
-		#modulator_decay_level_one: 0-15
-		#modulator_decay_rate_one: 0-63
-		#modulator_decay_rate_two: 0-63
+		#modulator_decay_level: 0-15
+		#modulator_decay_rate_1: 0-63
+		#modulator_decay_rate_2: 0-63
 		#modulator_fine_detune: -7 +7, bit 4 is sign bit
 		#modulator_frequency_multiple: 0-15
-		#modulator_key_scaling_high: 0-15
-		#modulator_key_scaling_low: 3
+		#modulator_level_key_scaling_high: 0-15
+		#modulator_level_key_scaling_low: 3
 		#modulator_rate_key_scaling: 0-4
 		#modulator_release_rate: 0-15
 		#modulator_sine_table: 0-4
 		#modulator_sustain_release_rate: 0-15
 		#modulator_total_level: 0-99
-		#feedback: 0-7
-		#pitch_modulation_sensitivity: 0-7
-		#sustain_enable: True or False
-		#vibrato_delay_time: 0-127?
-		#vibrato_enable: True or False
-
-		#mystery_byte_one: 9 10
-		#mystery_byte_two: 14 15
-		#mystery_byte_three: 0 1
-		#mystery_byte_four: 0 7 11
-		#mystery_byte_five: 2 6 14
-		#mystery_byte_six: 13 14 15
-		#mystery_byte_seven: 0 4 5 6 15
-		#mystery_byte_eight: 5 6 7 9 15
-		#mystery_byte_nine: 0 1 3 4 5 7 8 11
-
 		
 
 if __name__ == '__main__':			
