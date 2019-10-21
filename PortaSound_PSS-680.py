@@ -8,7 +8,7 @@ from PySide2.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit
 
 import random 
 import sys
-import subprocess
+import hashlib
 
 class PortaSound:
 	patch_header = [240, 67, 118, 0]
@@ -431,9 +431,17 @@ if __name__ == '__main__':
 		label = "5 random patches saved to: " + str(sys.argv[1])
 		patches = p.load_patches(sys.argv[1])
 		p.write_patches(patches,'test.syx')
-		hmmm = subprocess.run(["md5sum", sys.argv[1], 'test.syx'])
-		if hmmm.returncode == 0:
-			print("Patch routines seem to be working.")	
+		rfile = open(sys.argv[1],'rb')
+		data = rfile.read()
+		rfilemd5 = hashlib.md5()
+		rfilemd5.update(data)
+		pfile = open('test.syx','rb')
+		data = pfile.read()
+		pfilemd5 = hashlib.md5()
+		pfilemd5.update(data)
+		if rfilemd5.digest() == pfilemd5.digest():
+			print("Patch routines seem to be working!")
+
 	else:
 		label = "Something went wrong with the patch generation." 
 	thelabel = QLabel(label)
