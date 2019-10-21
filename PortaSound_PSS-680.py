@@ -6,9 +6,12 @@ from PySide2.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit
         QSlider, QSpinBox, QStyleFactory, QTableWidget, QTabWidget, QTextEdit,
         QVBoxLayout, QWidget)
 
-import random 
+import random
+from time import sleep
 import sys
 import hashlib
+import subprocess
+#import jack
 
 class PortaSound(QDialog):
 	patch_header = [240, 67, 118, 0]
@@ -316,118 +319,144 @@ class PortaSound(QDialog):
 	def write_patches(self, patches, path):
 		f = open(path,'wb')
 		for patch in patches:
-			for i in self.patch_header:
-				f.write((i).to_bytes(1, byteorder="little"))	
-			f.write((0).to_bytes(1, byteorder="little"))			
-			f.write((patch['bank']).to_bytes(1, byteorder="little"))	
-			checksum = patch['bank']
-			checksum = self.writepatchchar(f,patch['modulator_fine_detune'],checksum)
-			checksum = self.writepatchchar(f,patch['modulator_frequency_multiple'],checksum)
-			checksum = self.writepatchchar(f,patch['carrier_fine_detune'],checksum)
-			checksum = self.writepatchchar(f,patch['carrier_frequency_multiple'],checksum)
-			v = patch['modulator_total_level'] >> 4
-			checksum = self.writepatchchar(f,v,checksum)
-			mask = ~(7 << 4)
-			v = patch['modulator_total_level'] & mask
-			checksum = self.writepatchchar(f,v,checksum)
-			v = patch['carrier_total_level'] >> 4
-			checksum = self.writepatchchar(f,v,checksum)
-			mask = ~(7 << 4)
-			v = patch['carrier_total_level'] & mask
-			checksum = self.writepatchchar(f,v,checksum)
-			checksum = self.writepatchchar(f,patch['modulator_level_key_scaling_high'],checksum)
-			checksum = self.writepatchchar(f,patch['modulator_level_key_scaling_low'],checksum)
-			checksum = self.writepatchchar(f,patch['carrier_level_key_scaling_high'],checksum)
-			checksum = self.writepatchchar(f,patch['carrier_level_key_scaling_low'],checksum)
-			v = (patch['modulator_rate_key_scaling'] << 2) + (patch['modulator_attack_rate'] >> 4)
-			checksum = self.writepatchchar(f,v,checksum)
-			mask = ~(3 << 4)
-			v = patch['modulator_attack_rate'] & mask
-			checksum = self.writepatchchar(f,v,checksum)
-			v = (patch['carrier_rate_key_scaling'] << 2) + (patch['carrier_attack_rate'] >> 4)
-			checksum = self.writepatchchar(f,v,checksum)
-			mask = ~(3 << 4)
-			v = patch['carrier_attack_rate'] & mask
-			checksum = self.writepatchchar(f,v,checksum)
-			v = patch['modulator_decay_rate_1'] >> 4
-			mask = 1 << 3
-			if patch['modulator_amplitude_modulation_enable'] == True:
-				v = v | mask
-			mask = 1 << 2
-			if patch['modulator_coarse_detune_enable'] == True:
-				v = v | mask
-			checksum = self.writepatchchar(f,v,checksum)
-			mask = ~(3 << 4)
-			v = patch['modulator_decay_rate_1'] & mask
-			checksum = self.writepatchchar(f,v,checksum)
-			v = patch['carrier_decay_rate_1'] >> 4
-			mask = 1 << 3
-			if patch['carrier_amplitude_modulation_enable'] == True:
-				v = v | mask
-			mask = 1 << 2
-			if patch['carrier_coarse_detune_enable'] == True:
-				v = v | mask
-			checksum = self.writepatchchar(f,v,checksum)
-			mask = ~(3 << 4)
-			v = patch['carrier_decay_rate_1'] & mask
-			checksum = self.writepatchchar(f,v,checksum)
-			v = (patch['modulator_sine_table'] << 2) + (patch['modulator_decay_rate_2'] >> 4)
-			checksum = self.writepatchchar(f,v,checksum)
-			mask = ~(3 << 4)
-			v = patch['modulator_decay_rate_2'] & mask
-			checksum = self.writepatchchar(f,v,checksum)
-			v = (patch['carrier_sine_table'] << 2) + (patch['carrier_decay_rate_2'] >> 4)
-			checksum = self.writepatchchar(f,v,checksum)
-			mask = ~(3 << 4)
-			v = patch['carrier_decay_rate_2'] & mask
-			checksum = self.writepatchchar(f,v,checksum)
-			checksum = self.writepatchchar(f,patch['modulator_decay_level'],checksum)
-			checksum = self.writepatchchar(f,patch['modulator_release_rate'],checksum)
-			checksum = self.writepatchchar(f,patch['carrier_decay_level'],checksum)
-			checksum = self.writepatchchar(f,patch['carrier_release_rate'],checksum)
-			v = patch['feedback'] >> 1
-			checksum = self.writepatchchar(f,v,checksum)
-			mask = ~(3 << 1)
-			v = (patch['feedback'] & mask) << 3
-			checksum = self.writepatchchar(f,v,checksum)
-			checksum = self.writepatchchar(f,patch['pitch_modulation_sensitivity'],checksum)
-			checksum = self.writepatchchar(f,patch['amplitude_modulation_sensitivity'],checksum)
-			checksum = self.writepatchchar(f,patch['mystery_byte_1'],checksum)
-			checksum = self.writepatchchar(f,patch['mystery_byte_2'],checksum)
-			checksum = self.writepatchchar(f,patch['mystery_byte_3'],checksum)
-			checksum = self.writepatchchar(f,patch['mystery_byte_4'],checksum)
-			checksum = self.writepatchchar(f,patch['mystery_byte_5'],checksum)
-			checksum = self.writepatchchar(f,patch['mystery_byte_6'],checksum)
-			checksum = self.writepatchchar(f,patch['mystery_byte_7'],checksum)
-			checksum = self.writepatchchar(f,patch['modulator_sustain_release_rate'],checksum)
-			checksum = self.writepatchchar(f,patch['mystery_byte_8'],checksum) 
-			checksum = self.writepatchchar(f,patch['carrier_sustain_release_rate'],checksum)
-			v = patch['vibrato_delay_time'] >> 4
-			checksum = self.writepatchchar(f,v,checksum)
-			mask = ~(7 << 4)
-			v = patch['vibrato_delay_time'] & mask
-			checksum = self.writepatchchar(f,v,checksum)
-			f.write((0).to_bytes(1, byteorder="little"))
-			checksum = self.writepatchchar(f,patch['mystery_byte_9'],checksum) 
-			v = 0
-			mask = 1 << 3
-			if patch['vibrato_enable'] == True:
-				v = v | mask
-			mask = 1 << 2
-			if patch['sustain_enable'] == True:
-				v = v | mask
-			checksum = self.writepatchchar(f,v,checksum)
-			f.write((0).to_bytes(17, byteorder="little"))			
-			f.write((self.twos_comp_b(checksum)).to_bytes(1, byteorder="little"))
-			f.write((self.patch_footer).to_bytes(1, byteorder="little"))
+			self.write_patch(f,patch)
 		f.close()
+
+	def write_and_send_patch(self,patch,path):
+		f = open(path,'wb')
+		self.write_patch(f,patch)
+		bank = patch['bank'] + 100
+		f.write(int(192).to_bytes(1,byteorder="little"))
+		f.write(bank.to_bytes(1, byteorder="little"))
+		f.write(int(144).to_bytes(1,byteorder="little"))
+		f.write(int(40).to_bytes(1, byteorder="little"))
+		f.write(int(127).to_bytes(1, byteorder="little"))
+		f.close()
+		self.try_to_send_file(path)
+
+	def try_to_send_file(self,path):
+		if self.sending == False:
+			self.sending = True
+			subprocess.Popen(["amidi","-p","hw:4,0,1","-s",path])
+			sleep(0.05)
+			self.sending = False
+
+	def write_patch(self, f, patch):
+		for i in self.patch_header:
+			f.write((i).to_bytes(1, byteorder="little"))	
+		f.write((0).to_bytes(1, byteorder="little"))			
+		f.write((patch['bank']).to_bytes(1, byteorder="little"))	
+		checksum = patch['bank']
+		checksum = self.writepatchchar(f,patch['modulator_fine_detune'],checksum)
+		checksum = self.writepatchchar(f,patch['modulator_frequency_multiple'],checksum)
+		checksum = self.writepatchchar(f,patch['carrier_fine_detune'],checksum)
+		checksum = self.writepatchchar(f,patch['carrier_frequency_multiple'],checksum)
+		v = patch['modulator_total_level'] >> 4
+		checksum = self.writepatchchar(f,v,checksum)
+		mask = ~(7 << 4)
+		v = patch['modulator_total_level'] & mask
+		checksum = self.writepatchchar(f,v,checksum)
+		v = patch['carrier_total_level'] >> 4
+		checksum = self.writepatchchar(f,v,checksum)
+		mask = ~(7 << 4)
+		v = patch['carrier_total_level'] & mask
+		checksum = self.writepatchchar(f,v,checksum)
+		checksum = self.writepatchchar(f,patch['modulator_level_key_scaling_high'],checksum)
+		checksum = self.writepatchchar(f,patch['modulator_level_key_scaling_low'],checksum)
+		checksum = self.writepatchchar(f,patch['carrier_level_key_scaling_high'],checksum)
+		checksum = self.writepatchchar(f,patch['carrier_level_key_scaling_low'],checksum)
+		v = (patch['modulator_rate_key_scaling'] << 2) + (patch['modulator_attack_rate'] >> 4)
+		checksum = self.writepatchchar(f,v,checksum)
+		mask = ~(3 << 4)
+		v = patch['modulator_attack_rate'] & mask
+		checksum = self.writepatchchar(f,v,checksum)
+		v = (patch['carrier_rate_key_scaling'] << 2) + (patch['carrier_attack_rate'] >> 4)
+		checksum = self.writepatchchar(f,v,checksum)
+		mask = ~(3 << 4)
+		v = patch['carrier_attack_rate'] & mask
+		checksum = self.writepatchchar(f,v,checksum)
+		v = patch['modulator_decay_rate_1'] >> 4
+		mask = 1 << 3
+		if patch['modulator_amplitude_modulation_enable'] == True:
+			v = v | mask
+		mask = 1 << 2
+		if patch['modulator_coarse_detune_enable'] == True:
+			v = v | mask
+		checksum = self.writepatchchar(f,v,checksum)
+		mask = ~(3 << 4)
+		v = patch['modulator_decay_rate_1'] & mask
+		checksum = self.writepatchchar(f,v,checksum)
+		v = patch['carrier_decay_rate_1'] >> 4
+		mask = 1 << 3
+		if patch['carrier_amplitude_modulation_enable'] == True:
+			v = v | mask
+		mask = 1 << 2
+		if patch['carrier_coarse_detune_enable'] == True:
+			v = v | mask
+		checksum = self.writepatchchar(f,v,checksum)
+		mask = ~(3 << 4)
+		v = patch['carrier_decay_rate_1'] & mask
+		checksum = self.writepatchchar(f,v,checksum)
+		v = (patch['modulator_sine_table'] << 2) + (patch['modulator_decay_rate_2'] >> 4)
+		checksum = self.writepatchchar(f,v,checksum)
+		mask = ~(3 << 4)
+		v = patch['modulator_decay_rate_2'] & mask
+		checksum = self.writepatchchar(f,v,checksum)
+		v = (patch['carrier_sine_table'] << 2) + (patch['carrier_decay_rate_2'] >> 4)
+		checksum = self.writepatchchar(f,v,checksum)
+		mask = ~(3 << 4)
+		v = patch['carrier_decay_rate_2'] & mask
+		checksum = self.writepatchchar(f,v,checksum)
+		checksum = self.writepatchchar(f,patch['modulator_decay_level'],checksum)
+		checksum = self.writepatchchar(f,patch['modulator_release_rate'],checksum)
+		checksum = self.writepatchchar(f,patch['carrier_decay_level'],checksum)
+		checksum = self.writepatchchar(f,patch['carrier_release_rate'],checksum)
+		v = patch['feedback'] >> 1
+		checksum = self.writepatchchar(f,v,checksum)
+		mask = ~(3 << 1)
+		v = (patch['feedback'] & mask) << 3
+		checksum = self.writepatchchar(f,v,checksum)
+		checksum = self.writepatchchar(f,patch['pitch_modulation_sensitivity'],checksum)
+		checksum = self.writepatchchar(f,patch['amplitude_modulation_sensitivity'],checksum)
+		checksum = self.writepatchchar(f,patch['mystery_byte_1'],checksum)
+		checksum = self.writepatchchar(f,patch['mystery_byte_2'],checksum)
+		checksum = self.writepatchchar(f,patch['mystery_byte_3'],checksum)
+		checksum = self.writepatchchar(f,patch['mystery_byte_4'],checksum)
+		checksum = self.writepatchchar(f,patch['mystery_byte_5'],checksum)
+		checksum = self.writepatchchar(f,patch['mystery_byte_6'],checksum)
+		checksum = self.writepatchchar(f,patch['mystery_byte_7'],checksum)
+		checksum = self.writepatchchar(f,patch['modulator_sustain_release_rate'],checksum)
+		checksum = self.writepatchchar(f,patch['mystery_byte_8'],checksum) 
+		checksum = self.writepatchchar(f,patch['carrier_sustain_release_rate'],checksum)
+		v = patch['vibrato_delay_time'] >> 4
+		checksum = self.writepatchchar(f,v,checksum)
+		mask = ~(7 << 4)
+		v = patch['vibrato_delay_time'] & mask
+		checksum = self.writepatchchar(f,v,checksum)
+		f.write((0).to_bytes(1, byteorder="little"))
+		checksum = self.writepatchchar(f,patch['mystery_byte_9'],checksum) 
+		v = 0
+		mask = 1 << 3
+		if patch['vibrato_enable'] == True:
+			v = v | mask
+		mask = 1 << 2
+		if patch['sustain_enable'] == True:
+			v = v | mask
+		checksum = self.writepatchchar(f,v,checksum)
+		f.write((0).to_bytes(17, byteorder="little"))			
+		f.write((self.twos_comp_b(checksum)).to_bytes(1, byteorder="little"))
+		f.write((self.patch_footer).to_bytes(1, byteorder="little"))
+
 
 	def __init__(self, parent=None):
 		super(PortaSound, self).__init__(parent)
-
+		#self.connection = jack.Client('PSS-680 Editor')
+		#self.inport = self.connection.midi_inports.register('midi_in')
+		#self.outport = self.connection.midi_outports.register('midi_out')
 		if len(sys.argv) != 2:
 			print("Usage: ", str(sys.argv[0]), "[filename]")
 			exit()
+		self.sending = False
 		self.random_patches(sys.argv[1])
 		if self.check_binary(sys.argv[1]) == True:
 			if self.load_patches(sys.argv[1]) == True:
@@ -878,135 +907,179 @@ class PortaSound(QDialog):
 
 	def changeFeedback(self):
 		self.patches[self.bank]['feedback'] = self.feedbackSlider.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changePitchMod(self):
 		self.patches[self.bank]['pitch_modulation_sensitivity'] = self.pitchmodSlider.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeVibDelay(self):
 		self.patches[self.bank]['vibrato_delay_time'] = self.vibdelaySlider.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeSustain(self):
 		self.patches[self.bank]['sustain_enable'] = self.sustain.checkState()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeVibrato(self):
 		self.patches[self.bank]['vibrato_enable'] = self.vibrato.checkState()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeCST(self):
 		self.patches[self.bank]['carrier_sine_table'] = self.cstComboBox.currentIndex()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeCCDetune(self):
 		self.patches[self.bank]['carrier_coarse_detune'] = self.ccdetune.checkState()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeCFDetune(self):
 		self.patches[self.bank]['carrier_fine_detune'] = self.cfdetuneSlider.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeCFMult(self):
 		self.patches[self.bank]['carrier_frequency_multiple'] = self.cfmultSlider.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeCAmpMod(self):
 		self.patches[self.bank]['carrier_amplitude_modulation_enable'] = self.campmod.checkState()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeCTLevel(self):
 		self.patches[self.bank]['carrier_total_level'] = self.ctlevelSlider.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 	
 	def changeCARate(self):
 		self.patches[self.bank]['carrier_attack_rate'] = self.carateSlider.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeCDRate1(self):
 		self.patches[self.bank]['carrier_decay_rate_1'] = self.cdrate1Slider.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeCDLevel(self):
 		self.patches[self.bank]['carrier_decay_level'] = self.cdlevelSlider.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeCDRate2(self):
 		self.patches[self.bank]['carrier_decay_rate_2'] = self.cdrate2Slider.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeCRRate(self):
 		self.patches[self.bank]['carrier_release_rate'] = self.crrateSlider.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeCSRRate(self):
 		self.patches[self.bank]['carrier_sustain_release_rate'] = self.csrrateSlider.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeCRateKS(self):
 		self.patches[self.bank]['carrier_rate_key_scaling'] = self.crateksSlider.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeCLevelKSH(self):
 		self.patches[self.bank]['carrier_level_key_scaling_high'] = self.clevelkshSlider.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeCLevelKSL(self):
 		self.patches[self.bank]['carrier_level_key_scaling_low'] = self.clevelkslSlider.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMST(self):
 		self.patches[self.bank]['modulator_sine_table'] = self.mstComboBox.currentIndex()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMCDetune(self):
 		self.patches[self.bank]['modulator_coarse_detune'] = self.mcdetune.checkState()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMFDetune(self):
 		self.patches[self.bank]['modulator_fine_detune'] = self.mfdetuneSlider.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMFMult(self):
 		self.patches[self.bank]['modulator_frequency_multiple'] = self.mfmultSlider.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMAmpMod(self):
 		self.patches[self.bank]['modulator_amplitude_modulation_enable'] = self.mampmod.checkState()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMTLevel(self):
 		self.patches[self.bank]['modulator_total_level'] = self.mtlevelSlider.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 	
 	def changeMARate(self):
 		self.patches[self.bank]['modulator_attack_rate'] = self.marateSlider.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMDRate1(self):
 		self.patches[self.bank]['modulator_decay_rate_1'] = self.mdrate1Slider.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMDLevel(self):
 		self.patches[self.bank]['modulator_decay_level'] = self.mdlevelSlider.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMDRate2(self):
 		self.patches[self.bank]['modulator_decay_rate_2'] = self.mdrate2Slider.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMRRate(self):
 		self.patches[self.bank]['modulator_release_rate'] = self.mrrateSlider.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMSRRate(self):
 		self.patches[self.bank]['modulator_sustain_release_rate'] = self.msrrateSlider.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMRateKS(self):
 		self.patches[self.bank]['modulator_rate_key_scaling'] = self.mrateksSlider.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMLevelKSH(self):
 		self.patches[self.bank]['modulator_level_key_scaling_high'] = self.mlevelkshSlider.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMLevelKSL(self):
 		self.patches[self.bank]['modulator_level_key_scaling_low'] = self.mlevelkslSlider.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMByte1(self):
 		self.patches[self.bank]['mystery_byte_1'] = self.mbyteSlider1.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMByte2(self):
 		self.patches[self.bank]['mystery_byte_2'] = self.mbyteSlider2.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMByte3(self):
 		self.patches[self.bank]['mystery_byte_3'] = self.mbyteSlider3.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMByte4(self):
 		self.patches[self.bank]['mystery_byte_4'] = self.mbyteSlider4.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMByte5(self):
 		self.patches[self.bank]['mystery_byte_5'] = self.mbyteSlider5.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMByte6(self):
 		self.patches[self.bank]['mystery_byte_6'] = self.mbyteSlider6.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMByte7(self):
 		self.patches[self.bank]['mystery_byte_7'] = self.mbyteSlider7.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMByte8(self):
 		self.patches[self.bank]['mystery_byte_8'] = self.mbyteSlider8.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMByte9(self):
 		self.patches[self.bank]['mystery_byte_9'] = self.mbyteSlider9.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 
 	def changeBank(self):
@@ -1074,4 +1147,5 @@ if __name__ == '__main__':
 	p.changeBank()
 	p.show()
 	app.exec_()
-
+	#p.connection.deactivate()
+	#p.connection.close()
