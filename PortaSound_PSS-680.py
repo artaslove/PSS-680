@@ -19,7 +19,7 @@ class PortaSound(QDialog):
 
 	def load_patches(self, path):
 		if self.check_binary(path) == True:
-			patches = []
+			self.patches = []
 			f = open(path,'rb')
 			i = 0
 			patch = {}
@@ -169,12 +169,12 @@ class PortaSound(QDialog):
 						patch['sustain_enable'] = False
 				if i == 71:
 					i = -1
-					patches.append(patch)
-					for key in sorted(patch.keys()):
-						print("%s: %s" % (key, patch[key]))
+					self.patches.append(patch)
+					#for key in sorted(patch.keys()):
+					#	print("%s: %s" % (key, patch[key]))
 					patch = {}
 				i = i + 1			
-			return patches
+			return True
 		else:
 			return False
 
@@ -424,10 +424,13 @@ class PortaSound(QDialog):
 		super(PortaSound, self).__init__(parent)
 		self.bankComboBox = QComboBox()
 		self.bankComboBox.addItems(["0","1","2","3","4"])
+		self.bank = 0
 
 		bankLabel = QLabel("&Bank:")
 		bankLabel.setBuddy(self.bankComboBox)
 		self.bankComboBox.activated[str].connect(self.changeBank)
+
+		self.carrierBox = QGroupBox("Carrier")
 
 		#carrier_amplitude_modulation_enable: True or False
 		#carrier_attack_rate: 0-63 
@@ -444,7 +447,9 @@ class PortaSound(QDialog):
 		#carrier_sine_table: 0-4
 		#carrier_sustain_release_rate: 0-15
 		#carrier_total_level: 0-99		# it's backwards
-		#feedback: 0-7
+
+		self.modulatorBox = QGroupBox("Modulator")
+
 		#modulator_amplitude_modulation_enable: True or False
 		#modulator_attack_rate: 0-63 
 		#modulator_coarse_detune_enable: True or False
@@ -461,31 +466,106 @@ class PortaSound(QDialog):
 		#modulator_sustain_release_rate: 0-15
 		#modulator_total_level: 0-99
 
-		#mystery_byte_eight: 5 6 7 9 15
-		#mystery_byte_five: 2 6 14
-		#mystery_byte_four: 0 7 11
-		#mystery_byte_nine: 0 1 3 4 5 7 8 11
-		#mystery_byte_one: 9 10
-		#mystery_byte_seven: 0 4 5 6 15
-		#mystery_byte_six: 13 14 15
-		#mystery_byte_three: 0 1
-		#mystery_byte_two: 14 15
+		#feedback: 0-7
+		self.feedbackSlider = QSlider(Qt.Horizontal)
+		self.feedbackSlider.setMinimum(0)
+		self.feedbackSlider.setMaximum(7)
+		feedbackLabel = QLabel("&Feedback:")
+		feedbackLabel.setBuddy(self.feedbackSlider)
+		self.feedbackSlider.valueChanged.connect(self.changeFeedback)
+
 
 		#pitch_modulation_sensitivity: 0-7
 		#sustain_enable: True or False
 		#vibrato_delay_time: 0-127?
 		#vibrato_enable: True or False
 
+		self.unknownBox = QGroupBox("Mystery Bytes")
+
+		#mystery_byte_one: 9 10
+		#mystery_byte_two: 14 15
+		#mystery_byte_three: 0 1
+		#mystery_byte_four: 0 7 11
+		#mystery_byte_five: 2 6 14
+		#mystery_byte_six: 13 14 15
+		#mystery_byte_seven: 0 4 5 6 15
+		#mystery_byte_eight: 5 6 7 9 15
+		#mystery_byte_nine: 0 1 3 4 5 7 8 11
 
 		topLayout = QHBoxLayout()
 		topLayout.addWidget(bankLabel)
 		topLayout.addWidget(self.bankComboBox)
 		topLayout.addStretch(1)
-		self.setLayout(topLayout)
+
+		bottomBox = QHBoxLayout()
+		bottomBox.addWidget(feedbackLabel)
+		bottomBox.addWidget(self.feedbackSlider)
+		topLayout.addStretch(1)
+
+
+		mainLayout = QGridLayout()
+		mainLayout.addLayout(topLayout, 0, 0)
+		mainLayout.addWidget(self.carrierBox, 1, 0)		
+		mainLayout.addWidget(self.modulatorBox, 1, 1)		
+		mainLayout.addWidget(self.unknownBox, 1, 2)
+		mainLayout.addLayout(bottomBox, 2, 0, 1, 1)		
+
+		self.setLayout(mainLayout)
 		self.setWindowTitle("PortaSound PSS-680 patch editor")
 
+	def changeFeedback(self):
+		self.patches[self.bank]['feedback'] = self.feedbackSlider.value()
+
+
 	def changeBank(self):
-		bank = int(self.bankComboBox.currentText())
+		self.bank = int(self.bankComboBox.currentText())
+
+		#carrier_amplitude_modulation_enable: True or False
+		#carrier_attack_rate: 0-63 
+		#carrier_coarse_detune_enable: True or False
+		#carrier_decay_level_one: 0-15
+		#carrier_decay_rate_one: 0-63
+		#carrier_decay_rate_two: 0-63
+		#carrier_fine_detune: -7 +7, bit 4 is sign bit
+		#carrier_frequency_multiple: 0-15
+		#carrier_key_scaling_high: 0-15		# crazy diagram
+		#carrier_key_scaling_low: 0-15		# less crazy
+		#carrier_rate_key_scaling: 0-4
+		#carrier_release_rate: 0-15
+		#carrier_sine_table: 0-4
+		#carrier_sustain_release_rate: 0-15
+		#carrier_total_level: 0-99		# it's backwards
+		#modulator_amplitude_modulation_enable: True or False
+		#modulator_attack_rate: 0-63 
+		#modulator_coarse_detune_enable: True or False
+		#modulator_decay_level_one: 0-15
+		#modulator_decay_rate_one: 0-63
+		#modulator_decay_rate_two: 0-63
+		#modulator_fine_detune: -7 +7, bit 4 is sign bit
+		#modulator_frequency_multiple: 0-15
+		#modulator_key_scaling_high: 0-15
+		#modulator_key_scaling_low: 3
+		#modulator_rate_key_scaling: 0-4
+		#modulator_release_rate: 0-15
+		#modulator_sine_table: 0-4
+		#modulator_sustain_release_rate: 0-15
+		#modulator_total_level: 0-99
+		#feedback: 0-7
+		#pitch_modulation_sensitivity: 0-7
+		#sustain_enable: True or False
+		#vibrato_delay_time: 0-127?
+		#vibrato_enable: True or False
+
+		#mystery_byte_one: 9 10
+		#mystery_byte_two: 14 15
+		#mystery_byte_three: 0 1
+		#mystery_byte_four: 0 7 11
+		#mystery_byte_five: 2 6 14
+		#mystery_byte_six: 13 14 15
+		#mystery_byte_seven: 0 4 5 6 15
+		#mystery_byte_eight: 5 6 7 9 15
+		#mystery_byte_nine: 0 1 3 4 5 7 8 11
+
 		
 
 if __name__ == '__main__':			
@@ -496,18 +576,18 @@ if __name__ == '__main__':
 		exit()
 	p.random_patches(sys.argv[1])
 	if p.check_binary(sys.argv[1]) == True:
-		patches = p.load_patches(sys.argv[1])
-		p.write_patches(patches,'test.syx')
-		rfile = open(sys.argv[1],'rb')
-		data = rfile.read()
-		rfilemd5 = hashlib.md5()
-		rfilemd5.update(data)
-		pfile = open('test.syx','rb')
-		data = pfile.read()
-		pfilemd5 = hashlib.md5()
-		pfilemd5.update(data)
-		if rfilemd5.digest() == pfilemd5.digest():
-			print("Patch routines seem to be working!")
+		if p.load_patches(sys.argv[1]) == True:
+			p.write_patches(p.patches,'test.syx')
+			rfile = open(sys.argv[1],'rb')
+			data = rfile.read()
+			rfilemd5 = hashlib.md5()
+			rfilemd5.update(data)
+			pfile = open('test.syx','rb')
+			data = pfile.read()
+			pfilemd5 = hashlib.md5()
+			pfilemd5.update(data)
+			if rfilemd5.digest() == pfilemd5.digest():
+				print("Patch routines seem to be working!")
 
 	else:
 		 print("Something went wrong with the patch generation.")
