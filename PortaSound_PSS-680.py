@@ -10,7 +10,7 @@ import random
 import sys
 import hashlib
 
-class PortaSound:
+class PortaSound(QDialog):
 	patch_header = [240, 67, 118, 0]
 	patch_footer = 247
 
@@ -55,13 +55,13 @@ class PortaSound:
 				if i == 17:
 					patch['carrier_key_scaling_low'] = v
 				if i == 18:					
-					patch['modulator_level_key_scaling'] = v >> 2
+					patch['modulator_rate_key_scaling'] = v >> 2
 					mask = ~(3 << 2)
 					tempv = (v & mask) << 4 
 				if i == 19:
 					patch['modulator_attack_rate'] = tempv + v
 				if i == 20:
-					patch['carrier_level_key_scaling'] = v >> 2
+					patch['carrier_rate_key_scaling'] = v >> 2
 					mask = ~(3 << 2)
 					tempv = (v & mask) << 4
 				if i == 21:
@@ -270,9 +270,9 @@ class PortaSound:
 			checksum = self.writerandomchar(f,0,15,1,checksum)		# Modulator Level Key Scaling Lo
 			checksum = self.writerandomchar(f,0,15,1,checksum) 		# Carrier Level Key Scaling Hi
 			checksum = self.writerandomchar(f,0,15,1,checksum)		# Carrier Level Key Scaling Lo
-			checksum = self.writerandomchar(f,0,15,1,checksum) 		# Modulator Level Key Scaling 2 bits, Attack rate upper 2 bits
+			checksum = self.writerandomchar(f,0,15,1,checksum) 		# Modulator Rate Key Scaling 2 bits, Attack rate upper 2 bits
 			checksum = self.writerandomchar(f,1,15,1,checksum)		# Modulator Attack rate 4 bits
-			checksum = self.writerandomchar(f,0,15,1,checksum) 		# Carrier Level Key Scaling 2 bits, Attack rate upper 2 bits
+			checksum = self.writerandomchar(f,0,15,1,checksum) 		# Carrier Rate Key Scaling 2 bits, Attack rate upper 2 bits
 			checksum = self.writerandomchar(f,1,15,1,checksum)		# Carrier Attack rate 4 bits
 			checksum = self.writerandomchar(f,0,15,1,checksum) 		# Modulator Amplitude Modulation Enable 1 bit, Course Detune 1 bit, Decay 1 Rate upper 2bits
 			checksum = self.writerandomchar(f,0,15,1,checksum)		# Modulator Decay 1 Rate 4 bits
@@ -337,12 +337,12 @@ class PortaSound:
 			checksum = self.writepatchchar(f,patch['modulator_key_scaling_low'],checksum)
 			checksum = self.writepatchchar(f,patch['carrier_key_scaling_high'],checksum)
 			checksum = self.writepatchchar(f,patch['carrier_key_scaling_low'],checksum)
-			v = (patch['modulator_level_key_scaling'] << 2) + (patch['modulator_attack_rate'] >> 4)
+			v = (patch['modulator_rate_key_scaling'] << 2) + (patch['modulator_attack_rate'] >> 4)
 			checksum = self.writepatchchar(f,v,checksum)
 			mask = ~(3 << 4)
 			v = patch['modulator_attack_rate'] & mask
 			checksum = self.writepatchchar(f,v,checksum)
-			v = (patch['carrier_level_key_scaling'] << 2) + (patch['carrier_attack_rate'] >> 4)
+			v = (patch['carrier_rate_key_scaling'] << 2) + (patch['carrier_attack_rate'] >> 4)
 			checksum = self.writepatchchar(f,v,checksum)
 			mask = ~(3 << 4)
 			v = patch['carrier_attack_rate'] & mask
@@ -420,15 +420,82 @@ class PortaSound:
 			f.write((self.patch_footer).to_bytes(1, byteorder="little"))
 		f.close()
 
+	def __init__(self, parent=None):
+		super(PortaSound, self).__init__(parent)
+		self.bankComboBox = QComboBox()
+		self.bankComboBox.addItems(["0","1","2","3","4"])
+
+		bankLabel = QLabel("&Bank:")
+		bankLabel.setBuddy(self.bankComboBox)
+		self.bankComboBox.activated[str].connect(self.changeBank)
+
+		#carrier_amplitude_modulation_enable: True or False
+		#carrier_attack_rate: 0-63 
+		#carrier_coarse_detune_enable: True or False
+		#carrier_decay_level_one: 0-15
+		#carrier_decay_rate_one: 0-63
+		#carrier_decay_rate_two: 0-63
+		#carrier_fine_detune: -7 +7, bit 4 is sign bit
+		#carrier_frequency_multiple: 0-15
+		#carrier_key_scaling_high: 0-15		# crazy diagram
+		#carrier_key_scaling_low: 0-15		# less crazy
+		#carrier_rate_key_scaling: 0-4
+		#carrier_release_rate: 0-15
+		#carrier_sine_table: 0-4
+		#carrier_sustain_release_rate: 0-15
+		#carrier_total_level: 0-99		# it's backwards
+		#feedback: 0-7
+		#modulator_amplitude_modulation_enable: True or False
+		#modulator_attack_rate: 0-63 
+		#modulator_coarse_detune_enable: True or False
+		#modulator_decay_level_one: 0-15
+		#modulator_decay_rate_one: 0-63
+		#modulator_decay_rate_two: 0-63
+		#modulator_fine_detune: -7 +7, bit 4 is sign bit
+		#modulator_frequency_multiple: 0-15
+		#modulator_key_scaling_high: 0-15
+		#modulator_key_scaling_low: 3
+		#modulator_rate_key_scaling: 0-4
+		#modulator_release_rate: 0-15
+		#modulator_sine_table: 0-4
+		#modulator_sustain_release_rate: 0-15
+		#modulator_total_level: 0-99
+
+		#mystery_byte_eight: 5 6 7 9 15
+		#mystery_byte_five: 2 6 14
+		#mystery_byte_four: 0 7 11
+		#mystery_byte_nine: 0 1 3 4 5 7 8 11
+		#mystery_byte_one: 9 10
+		#mystery_byte_seven: 0 4 5 6 15
+		#mystery_byte_six: 13 14 15
+		#mystery_byte_three: 0 1
+		#mystery_byte_two: 14 15
+
+		#pitch_modulation_sensitivity: 0-7
+		#sustain_enable: True or False
+		#vibrato_delay_time: 0-127?
+		#vibrato_enable: True or False
+
+
+		topLayout = QHBoxLayout()
+		topLayout.addWidget(bankLabel)
+		topLayout.addWidget(self.bankComboBox)
+		topLayout.addStretch(1)
+		self.setLayout(topLayout)
+		self.setWindowTitle("PortaSound PSS-680 patch editor")
+
+	def changeBank(self):
+		bank = int(self.bankComboBox.currentText())
+		
+
 if __name__ == '__main__':			
-	p = PortaSound()
 	app = QApplication([])
+	p = PortaSound()
 	if len(sys.argv) != 2:
 		print("Usage: ", str(sys.argv[0]), "[filename]")
 		exit()
 	p.random_patches(sys.argv[1])
 	if p.check_binary(sys.argv[1]) == True:
-		label = "5 random patches saved to: " + str(sys.argv[1])
 		patches = p.load_patches(sys.argv[1])
 		p.write_patches(patches,'test.syx')
 		rfile = open(sys.argv[1],'rb')
@@ -443,8 +510,7 @@ if __name__ == '__main__':
 			print("Patch routines seem to be working!")
 
 	else:
-		label = "Something went wrong with the patch generation." 
-	thelabel = QLabel(label)
-	thelabel.show()
+		 print("Something went wrong with the patch generation.")
+	p.show()
 	app.exec_()
 
