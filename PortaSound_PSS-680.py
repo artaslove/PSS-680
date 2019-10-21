@@ -329,7 +329,7 @@ class PortaSound(QDialog):
 		f.write(int(192).to_bytes(1,byteorder="little"))
 		f.write(bank.to_bytes(1, byteorder="little"))
 		f.write(int(144).to_bytes(1,byteorder="little"))
-		f.write(int(40).to_bytes(1, byteorder="little"))
+		f.write(int(37).to_bytes(1, byteorder="little"))
 		f.write(int(127).to_bytes(1, byteorder="little"))
 		f.close()
 		self.try_to_send_file(path)
@@ -338,7 +338,7 @@ class PortaSound(QDialog):
 		if self.sending == False:
 			self.sending = True
 			subprocess.Popen(["amidi","-p","hw:4,0,1","-s",path])
-			sleep(0.05)
+			sleep(0.075)
 			self.sending = False
 
 	def write_patch(self, f, patch):
@@ -918,11 +918,11 @@ class PortaSound(QDialog):
 		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeSustain(self):
-		self.patches[self.bank]['sustain_enable'] = self.sustain.checkState()
+		self.patches[self.bank]['sustain_enable'] = self.sustain.isChecked()
 		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeVibrato(self):
-		self.patches[self.bank]['vibrato_enable'] = self.vibrato.checkState()
+		self.patches[self.bank]['vibrato_enable'] = self.vibrato.isChecked()
 		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeCST(self):
@@ -930,7 +930,7 @@ class PortaSound(QDialog):
 		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeCCDetune(self):
-		self.patches[self.bank]['carrier_coarse_detune'] = self.ccdetune.checkState()
+		self.patches[self.bank]['carrier_coarse_detune'] = self.ccdetune.isChecked()
 		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeCFDetune(self):
@@ -942,7 +942,7 @@ class PortaSound(QDialog):
 		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeCAmpMod(self):
-		self.patches[self.bank]['carrier_amplitude_modulation_enable'] = self.campmod.checkState()
+		self.patches[self.bank]['carrier_amplitude_modulation_enable'] = self.campmod.isChecked()
 		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeCTLevel(self):
@@ -990,7 +990,7 @@ class PortaSound(QDialog):
 		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMCDetune(self):
-		self.patches[self.bank]['modulator_coarse_detune'] = self.mcdetune.checkState()
+		self.patches[self.bank]['modulator_coarse_detune'] = self.mcdetune.isChecked()
 		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMFDetune(self):
@@ -1002,7 +1002,7 @@ class PortaSound(QDialog):
 		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMAmpMod(self):
-		self.patches[self.bank]['modulator_amplitude_modulation_enable'] = self.mampmod.checkState()
+		self.patches[self.bank]['modulator_amplitude_modulation_enable'] = self.mampmod.isChecked()
 		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMTLevel(self):
