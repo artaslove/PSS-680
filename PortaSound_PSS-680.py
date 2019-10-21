@@ -22,6 +22,7 @@ class PortaSound(QDialog):
 			self.patches = []
 			f = open(path,'rb')
 			i = 0
+			z = 0
 			patch = {}
 			while True:
 				byte = f.read(1)
@@ -170,6 +171,7 @@ class PortaSound(QDialog):
 				if i == 71:
 					i = -1
 					self.patches.append(patch)
+					z = z + 1
 					#for key in sorted(patch.keys()):
 					#	print("%s: %s" % (key, patch[key]))
 					patch = {}
@@ -422,13 +424,28 @@ class PortaSound(QDialog):
 
 	def __init__(self, parent=None):
 		super(PortaSound, self).__init__(parent)
-		self.bankComboBox = QComboBox()
-		self.bankComboBox.addItems(["0","1","2","3","4"])
-		self.bank = 0
-		bankLabel = QLabel("&Bank:")
-		bankLabel.setBuddy(self.bankComboBox)
-		self.bankComboBox.activated[str].connect(self.changeBank)
 
+		if len(sys.argv) != 2:
+			print("Usage: ", str(sys.argv[0]), "[filename]")
+			exit()
+		self.random_patches(sys.argv[1])
+		if self.check_binary(sys.argv[1]) == True:
+			if self.load_patches(sys.argv[1]) == True:
+				self.write_patches(self.patches,'test.syx')
+				rfile = open(sys.argv[1],'rb')
+				data = rfile.read()
+				rfilemd5 = hashlib.md5()
+				rfilemd5.update(data)
+				pfile = open('test.syx','rb')
+				data = pfile.read()
+				pfilemd5 = hashlib.md5()
+				pfilemd5.update(data)
+				if rfilemd5.digest() == pfilemd5.digest():
+					print("Patch routines seem to be working!")
+		else:
+			 print("Something went wrong with the patch generation.")
+
+		#### Carrier
 		self.carrierBox = QGroupBox("Carrier")
 
 		self.cstComboBox = QComboBox()
@@ -562,6 +579,7 @@ class PortaSound(QDialog):
 		carrierboxlayout.addStretch(1)
 		self.carrierBox.setLayout(carrierboxlayout)
 
+		#### Modulator
 		self.modulatorBox = QGroupBox("Modulator")
 
 		self.mstComboBox = QComboBox()
@@ -694,6 +712,115 @@ class PortaSound(QDialog):
 		modulatorboxlayout.addWidget(self.mlevelkslSlider)
 		modulatorboxlayout.addStretch(1)
 		self.modulatorBox.setLayout(modulatorboxlayout)
+
+		#### Mystery bytes
+		self.unknownBox = QGroupBox("Mystery Bytes")
+		q = 1
+		self.mbyteSliders = []
+		mbyteLabels = []
+		unknownboxlayout = QVBoxLayout()
+			
+		self.mbyteSlider1 = QSlider(Qt.Horizontal)
+		self.mbyteSlider1.setMinimum(0)
+		self.mbyteSlider1.setMaximum(15)
+		mbyteLabel1 = QLabel('Mystery Byte 1')
+		mbyteLabel1.setBuddy(self.mbyteSlider1)	
+		self.mbyteSlider1.valueChanged.connect(self.changeMByte1)
+		unknownboxlayout.addWidget(mbyteLabel1)
+		unknownboxlayout.addWidget(self.mbyteSlider1)
+
+		self.mbyteSlider2 = QSlider(Qt.Horizontal)
+		self.mbyteSlider2.setMinimum(0)
+		self.mbyteSlider2.setMaximum(15)
+		mbyteLabel2 = QLabel('Mystery Byte 2')
+		mbyteLabel2.setBuddy(self.mbyteSlider2)	
+		self.mbyteSlider2.valueChanged.connect(self.changeMByte2)
+		unknownboxlayout.addWidget(mbyteLabel2)
+		unknownboxlayout.addWidget(self.mbyteSlider2)
+
+		self.mbyteSlider3 = QSlider(Qt.Horizontal)
+		self.mbyteSlider3.setMinimum(0)
+		self.mbyteSlider3.setMaximum(15)
+		mbyteLabel3 = QLabel('Mystery Byte 3')
+		mbyteLabel3.setBuddy(self.mbyteSlider3)	
+		self.mbyteSlider3.valueChanged.connect(self.changeMByte3)
+		unknownboxlayout.addWidget(mbyteLabel3)
+		unknownboxlayout.addWidget(self.mbyteSlider3)
+
+		self.mbyteSlider4 = QSlider(Qt.Horizontal)
+		self.mbyteSlider4.setMinimum(0)
+		self.mbyteSlider4.setMaximum(15)
+		mbyteLabel4 = QLabel('Mystery Byte 4')
+		mbyteLabel4.setBuddy(self.mbyteSlider4)	
+		self.mbyteSlider4.valueChanged.connect(self.changeMByte4)
+		unknownboxlayout.addWidget(mbyteLabel4)
+		unknownboxlayout.addWidget(self.mbyteSlider4)
+
+		self.mbyteSlider5 = QSlider(Qt.Horizontal)
+		self.mbyteSlider5.setMinimum(0)
+		self.mbyteSlider5.setMaximum(15)
+		mbyteLabel5 = QLabel('Mystery Byte 5')
+		mbyteLabel5.setBuddy(self.mbyteSlider5)	
+		self.mbyteSlider5.valueChanged.connect(self.changeMByte5)
+		unknownboxlayout.addWidget(mbyteLabel5)
+		unknownboxlayout.addWidget(self.mbyteSlider5)
+
+		self.mbyteSlider6 = QSlider(Qt.Horizontal)
+		self.mbyteSlider6.setMinimum(0)
+		self.mbyteSlider6.setMaximum(15)
+		mbyteLabel6 = QLabel('Mystery Byte 6')
+		mbyteLabel6.setBuddy(self.mbyteSlider6)	
+		self.mbyteSlider6.valueChanged.connect(self.changeMByte6)
+		unknownboxlayout.addWidget(mbyteLabel6)
+		unknownboxlayout.addWidget(self.mbyteSlider6)
+
+		self.mbyteSlider7 = QSlider(Qt.Horizontal)
+		self.mbyteSlider7.setMinimum(0)
+		self.mbyteSlider7.setMaximum(15)
+		mbyteLabel7 = QLabel('Mystery Byte 7')
+		mbyteLabel7.setBuddy(self.mbyteSlider7)	
+		self.mbyteSlider7.valueChanged.connect(self.changeMByte7)
+		unknownboxlayout.addWidget(mbyteLabel7)
+		unknownboxlayout.addWidget(self.mbyteSlider7)
+
+		self.mbyteSlider8 = QSlider(Qt.Horizontal)
+		self.mbyteSlider8.setMinimum(0)
+		self.mbyteSlider8.setMaximum(15)
+		mbyteLabel8 = QLabel('Mystery Byte 8')
+		mbyteLabel8.setBuddy(self.mbyteSlider8)	
+		self.mbyteSlider8.valueChanged.connect(self.changeMByte8)
+		unknownboxlayout.addWidget(mbyteLabel8)
+		unknownboxlayout.addWidget(self.mbyteSlider8)
+
+		self.mbyteSlider9 = QSlider(Qt.Horizontal)
+		self.mbyteSlider9.setMinimum(0)
+		self.mbyteSlider9.setMaximum(15)
+		mbyteLabel9 = QLabel('Mystery Byte 9')
+		mbyteLabel9.setBuddy(self.mbyteSlider9)	
+		self.mbyteSlider9.valueChanged.connect(self.changeMByte9)
+		unknownboxlayout.addWidget(mbyteLabel9)
+		unknownboxlayout.addWidget(self.mbyteSlider9)
+
+		#mystery_byte_1: 9 10
+		#mystery_byte_2: 14 15
+		#mystery_byte_3: 0 1
+		#mystery_byte_4: 0 7 11
+		#mystery_byte_5: 2 6 14
+		#mystery_byte_6: 13 14 15
+		#mystery_byte_7: 0 4 5 6 15
+		#mystery_byte_8: 5 6 7 9 15
+		#mystery_byte_9: 0 1 3 4 5 7 8 11
+
+		unknownboxlayout.addStretch(1)
+		self.unknownBox.setLayout(unknownboxlayout)
+
+		#### Others
+		self.bankComboBox = QComboBox()
+		self.bankComboBox.addItems(["0","1","2","3","4"])
+		self.bank = 0
+		bankLabel = QLabel("&Bank:")
+		bankLabel.setBuddy(self.bankComboBox)
+		self.bankComboBox.activated[str].connect(self.changeBank)
 		
 		self.feedbackSlider = QSlider(Qt.Horizontal)
 		self.feedbackSlider.setMinimum(0)
@@ -721,19 +848,7 @@ class PortaSound(QDialog):
 
 		self.vibrato = QCheckBox("V&ibrato Enable")
 		self.vibrato.toggled.connect(self.changeVibrato)
-
-		self.unknownBox = QGroupBox("Mystery Bytes")
-
-		#mystery_byte_1: 9 10
-		#mystery_byte_2: 14 15
-		#mystery_byte_3: 0 1
-		#mystery_byte_4: 0 7 11
-		#mystery_byte_5: 2 6 14
-		#mystery_byte_6: 13 14 15
-		#mystery_byte_7: 0 4 5 6 15
-		#mystery_byte_8: 5 6 7 9 15
-		#mystery_byte_9: 0 1 3 4 5 7 8 11
-
+		
 		topLayout = QHBoxLayout()
 		topLayout.addWidget(bankLabel)
 		topLayout.addWidget(self.bankComboBox)
@@ -749,7 +864,6 @@ class PortaSound(QDialog):
 		bottomBox.addWidget(self.vibrato)		
 		bottomBox.addWidget(self.sustain)
 		bottomBox.addStretch(1)
-
 
 		mainLayout = QGridLayout()
 		mainLayout.addLayout(topLayout, 0, 0, 1, 2)
@@ -776,7 +890,6 @@ class PortaSound(QDialog):
 
 	def changeVibrato(self):
 		self.patches[self.bank]['vibrato_enable'] = self.vibrato.checkState()
-
 
 	def changeCST(self):
 		self.patches[self.bank]['carrier_sine_table'] = self.cstComboBox.currentIndex()
@@ -868,6 +981,33 @@ class PortaSound(QDialog):
 	def changeMLevelKSL(self):
 		self.patches[self.bank]['modulator_level_key_scaling_low'] = self.mlevelkslSlider.value()
 
+	def changeMByte1(self):
+		self.patches[self.bank]['mystery_byte_1'] = self.mbyteSlider1.value()
+
+	def changeMByte2(self):
+		self.patches[self.bank]['mystery_byte_2'] = self.mbyteSlider2.value()
+
+	def changeMByte3(self):
+		self.patches[self.bank]['mystery_byte_3'] = self.mbyteSlider3.value()
+
+	def changeMByte4(self):
+		self.patches[self.bank]['mystery_byte_4'] = self.mbyteSlider4.value()
+
+	def changeMByte5(self):
+		self.patches[self.bank]['mystery_byte_5'] = self.mbyteSlider5.value()
+
+	def changeMByte6(self):
+		self.patches[self.bank]['mystery_byte_6'] = self.mbyteSlider6.value()
+
+	def changeMByte7(self):
+		self.patches[self.bank]['mystery_byte_7'] = self.mbyteSlider7.value()
+
+	def changeMByte8(self):
+		self.patches[self.bank]['mystery_byte_8'] = self.mbyteSlider8.value()
+
+	def changeMByte9(self):
+		self.patches[self.bank]['mystery_byte_9'] = self.mbyteSlider9.value()
+
 
 	def changeBank(self):
 		self.bank = int(self.bankComboBox.currentText())
@@ -908,9 +1048,16 @@ class PortaSound(QDialog):
 		self.mrateksSlider.setValue(self.patches[self.bank]['modulator_rate_key_scaling'])
 		self.mlevelkshSlider.setValue(self.patches[self.bank]['modulator_level_key_scaling_high'])
 		self.mlevelkslSlider.setValue(self.patches[self.bank]['modulator_level_key_scaling_low'])
-
-
-
+		
+		self.mbyteSlider1.setValue(self.patches[self.bank]['mystery_byte_1'])
+		self.mbyteSlider2.setValue(self.patches[self.bank]['mystery_byte_2'])
+		self.mbyteSlider3.setValue(self.patches[self.bank]['mystery_byte_3'])
+		self.mbyteSlider4.setValue(self.patches[self.bank]['mystery_byte_4'])
+		self.mbyteSlider5.setValue(self.patches[self.bank]['mystery_byte_5'])
+		self.mbyteSlider6.setValue(self.patches[self.bank]['mystery_byte_6'])
+		self.mbyteSlider7.setValue(self.patches[self.bank]['mystery_byte_7'])
+		self.mbyteSlider8.setValue(self.patches[self.bank]['mystery_byte_8'])
+		self.mbyteSlider9.setValue(self.patches[self.bank]['mystery_byte_9'])
 		#mystery_byte_1: 9 10
 		#mystery_byte_2: 14 15
 		#mystery_byte_3: 0 1
@@ -921,46 +1068,9 @@ class PortaSound(QDialog):
 		#mystery_byte_8: 5 6 7 9 15
 		#mystery_byte_9: 0 1 3 4 5 7 8 11
 
-		#modulator_amplitude_modulation_enable: True or False
-		#modulator_attack_rate: 0-63 
-		#modulator_coarse_detune_enable: True or False
-		#modulator_decay_level: 0-15
-		#modulator_decay_rate_1: 0-63
-		#modulator_decay_rate_2: 0-63
-		#modulator_fine_detune: -7 +7, bit 4 is sign bit
-		#modulator_frequency_multiple: 0-15
-		#modulator_level_key_scaling_high: 0-15
-		#modulator_level_key_scaling_low: 3
-		#modulator_rate_key_scaling: 0-4
-		#modulator_release_rate: 0-15
-		#modulator_sine_table: 0-4
-		#modulator_sustain_release_rate: 0-15
-		#modulator_total_level: 0-99
-		
-
 if __name__ == '__main__':			
 	app = QApplication([])
 	p = PortaSound()
-	if len(sys.argv) != 2:
-		print("Usage: ", str(sys.argv[0]), "[filename]")
-		exit()
-	p.random_patches(sys.argv[1])
-	if p.check_binary(sys.argv[1]) == True:
-		if p.load_patches(sys.argv[1]) == True:
-			p.write_patches(p.patches,'test.syx')
-			rfile = open(sys.argv[1],'rb')
-			data = rfile.read()
-			rfilemd5 = hashlib.md5()
-			rfilemd5.update(data)
-			pfile = open('test.syx','rb')
-			data = pfile.read()
-			pfilemd5 = hashlib.md5()
-			pfilemd5.update(data)
-			if rfilemd5.digest() == pfilemd5.digest():
-				print("Patch routines seem to be working!")
-
-	else:
-		 print("Something went wrong with the patch generation.")
 	p.changeBank()
 	p.show()
 	app.exec_()
