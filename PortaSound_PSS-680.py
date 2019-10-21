@@ -52,7 +52,7 @@ class PortaSound:
 				if i == 16:
 					patch['carrier_key_scaling_high'] = v
 				if i == 17:
-					patch['carrier_key_scaling_high'] = v
+					patch['carrier_key_scaling_low'] = v
 				if i == 18:					
 					patch['modulator_level_key_scaling'] = v >> 2
 					mask = ~(3 << 2)
@@ -60,7 +60,7 @@ class PortaSound:
 				if i == 19:
 					patch['modulator_attack_rate'] = tempv + v
 				if i == 20:
-					patch['carrier_level key_scaling'] = v >> 2
+					patch['carrier_level_key_scaling'] = v >> 2
 					mask = ~(3 << 2)
 					tempv = (v & mask) << 4
 				if i == 21:
@@ -154,7 +154,6 @@ class PortaSound:
 				if i == 51: 							
 					patch['mystery_byte_nine'] = v 							
 				if i == 52:
-					print(str(v))
 					mask = 1 << 3
 					tempv = v & mask
 					if tempv > 0:
@@ -333,10 +332,10 @@ class PortaSound:
 			mask = ~(7 << 4)
 			v = patch['carrier_total_level'] & mask
 			checksum = self.writepatchchar(f,v,checksum)
-			checksum = self.writepatchchar(f,patch['modulator_level_key_scaling_high'],checksum)
-			checksum = self.writepatchchar(f,patch['modulator_level_key_scaling_low'],checksum)
-			checksum = self.writepatchchar(f,patch['carrier_level_key_scaling_high'],checksum)
-			checksum = self.writepatchchar(f,patch['carrier_level_key_scaling_low'],checksum)
+			checksum = self.writepatchchar(f,patch['modulator_key_scaling_high'],checksum)
+			checksum = self.writepatchchar(f,patch['modulator_key_scaling_low'],checksum)
+			checksum = self.writepatchchar(f,patch['carrier_key_scaling_high'],checksum)
+			checksum = self.writepatchchar(f,patch['carrier_key_scaling_low'],checksum)
 			v = (patch['modulator_level_key_scaling'] << 2) + (patch['modulator_attack_rate'] >> 4)
 			checksum = self.writepatchchar(f,v,checksum)
 			mask = ~(3 << 4)
@@ -352,7 +351,7 @@ class PortaSound:
 			if patch['modulator_amplitude_modulation_enable'] == True:
 				v = v | mask
 			mask = 1 << 3
-			if patch['modulator_course_detune_enable'] == True:
+			if patch['modulator_coarse_detune_enable'] == True:
 				v = v | mask
 			checksum = self.writepatchchar(f,v,checksum)
 			mask = ~(3 << 4)
@@ -363,7 +362,7 @@ class PortaSound:
 			if patch['carrier_amplitude_modulation_enable'] == True:
 				v = v | mask
 			mask = 1 << 3
-			if patch['carrier_course_detune_enable'] == True:
+			if patch['carrier_coarse_detune_enable'] == True:
 				v = v | mask
 			checksum = self.writepatchchar(f,v,checksum)
 			mask = ~(3 << 4)
@@ -430,6 +429,7 @@ if __name__ == '__main__':
 	if p.check_binary(sys.argv[1]) == True:
 		label = "5 random patches saved to: " + str(sys.argv[1])
 		patches = p.load_patches(sys.argv[1])
+		p.write_patches(patches,'test.syx')	
 	else:
 		label = "Something went wrong with the patch generation." 
 	thelabel = QLabel(label)
