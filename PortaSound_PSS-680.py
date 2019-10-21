@@ -471,11 +471,17 @@ class PortaSound(QDialog):
 		self.feedbackSlider.setMinimum(0)
 		self.feedbackSlider.setMaximum(7)
 		feedbackLabel = QLabel("&Feedback:")
-		feedbackLabel.setBuddy(self.feedbackSlider)
+		feedbackLabel.setBuddy(self.feedbackSlider)		
 		self.feedbackSlider.valueChanged.connect(self.changeFeedback)
 
-
 		#pitch_modulation_sensitivity: 0-7
+		self.pitchmodSlider = QSlider(Qt.Horizontal)
+		self.pitchmodSlider.setMinimum(0)
+		self.pitchmodSlider.setMaximum(7)
+		pitchmodLabel = QLabel("&Pitch Modulation:")
+		pitchmodLabel.setBuddy(self.pitchmodSlider)
+		self.pitchmodSlider.valueChanged.connect(self.changePitchMod)
+
 		#sustain_enable: True or False
 		#vibrato_delay_time: 0-127?
 		#vibrato_enable: True or False
@@ -500,25 +506,34 @@ class PortaSound(QDialog):
 		bottomBox = QHBoxLayout()
 		bottomBox.addWidget(feedbackLabel)
 		bottomBox.addWidget(self.feedbackSlider)
+		bottomBox.addWidget(pitchmodLabel)
+		bottomBox.addWidget(self.pitchmodSlider)
 		topLayout.addStretch(1)
 
 
 		mainLayout = QGridLayout()
-		mainLayout.addLayout(topLayout, 0, 0)
+		mainLayout.addLayout(topLayout, 0, 0, 1, 2)
 		mainLayout.addWidget(self.carrierBox, 1, 0)		
 		mainLayout.addWidget(self.modulatorBox, 1, 1)		
 		mainLayout.addWidget(self.unknownBox, 1, 2)
-		mainLayout.addLayout(bottomBox, 2, 0, 1, 1)		
+		mainLayout.addLayout(bottomBox, 2, 0, 1, 2)		
 
 		self.setLayout(mainLayout)
 		self.setWindowTitle("PortaSound PSS-680 patch editor")
 
 	def changeFeedback(self):
 		self.patches[self.bank]['feedback'] = self.feedbackSlider.value()
+		print(str(self.feedbackSlider.value()))
+
+	def changePitchMod(self):
+		self.patches[self.bank]['pitch_modulation_sensitivity'] = self.pitchmodSlider.value()
 
 
 	def changeBank(self):
 		self.bank = int(self.bankComboBox.currentText())
+		self.feedbackSlider.setValue(self.patches[self.bank]['feedback'])
+		self.pitchmodSlider.setValue(self.patches[self.bank]['pitch_modulation_sensitivity'])
+
 
 		#carrier_amplitude_modulation_enable: True or False
 		#carrier_attack_rate: 0-63 
@@ -591,6 +606,7 @@ if __name__ == '__main__':
 
 	else:
 		 print("Something went wrong with the patch generation.")
+	p.changeBank()
 	p.show()
 	app.exec_()
 
