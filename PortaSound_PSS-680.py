@@ -16,7 +16,9 @@ import subprocess
 class PortaSound(QDialog):
 	patch_header = [240, 67, 118, 0]
 	patch_footer = 247
-
+	detune = [15,14,13,12,11,10,9,8,0,1,2,3,4,5,6,7]
+	lks_hi = [15,14,13,12,11,10,9,8,7,6,5,4,0,3,2,1]
+	lks_lo = [15,14,13,12,11,10,9,8,0,7,6,5,4,3,2,1]
 	mbytes1 = [9,10]
 	mbytes2 = [14,15]
 	mbytes3 = [0,1]
@@ -347,8 +349,8 @@ class PortaSound(QDialog):
 	def try_to_send_file(self,path):
 		if self.sending == False:
 			self.sending = True
-			subprocess.Popen(["amidi","-p","hw:4,0,1","-s",path])
-			sleep(0.075)
+			subprocess.Popen(["amidi","-p","hw:5,0,1","-s",path])
+			sleep(0.05)
 			self.sending = False
 
 	def write_patch(self, f, patch):
@@ -925,7 +927,7 @@ class PortaSound(QDialog):
 		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeCFDetune(self):
-		self.patches[self.bank]['carrier_fine_detune'] = self.cfdetuneSlider.value()
+		self.patches[self.bank]['carrier_fine_detune'] = self.detune[self.cfdetuneSlider.value()]
 		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeCFMult(self):
@@ -1029,11 +1031,11 @@ class PortaSound(QDialog):
 		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMLevelKSH(self):
-		self.patches[self.bank]['modulator_level_key_scaling_high'] = self.mlevelkshSlider.value()
+		self.patches[self.bank]['modulator_level_key_scaling_high'] = self.lks_hi[self.mlevelkshSlider.value()]
 		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMLevelKSL(self):
-		self.patches[self.bank]['modulator_level_key_scaling_low'] = self.mlevelkslSlider.value()
+		self.patches[self.bank]['modulator_level_key_scaling_low'] = self.lks_lo[self.mlevelkslSlider.value()]
 		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMByte1(self):
@@ -1082,7 +1084,7 @@ class PortaSound(QDialog):
 
 		self.cstComboBox.setCurrentIndex(self.patches[self.bank]['carrier_sine_table'])
 		self.ccdetune.setChecked(self.patches[self.bank]['carrier_coarse_detune_enable'])
-		self.cfdetuneSlider.setValue(self.patches[self.bank]['carrier_fine_detune'])
+		self.cfdetuneSlider.setValue(self.detune.index(self.patches[self.bank]['carrier_fine_detune']))
 		self.cfmultSlider.setValue(self.patches[self.bank]['carrier_frequency_multiple'])
 		self.campmod.setChecked(self.patches[self.bank]['carrier_amplitude_modulation_enable'])
 		self.ctlevelSlider.setValue(self.patches[self.bank]['carrier_total_level'])
@@ -1093,8 +1095,8 @@ class PortaSound(QDialog):
 		self.crrateSlider.setValue(self.patches[self.bank]['carrier_release_rate'])
 		self.csrrateSlider.setValue(self.patches[self.bank]['carrier_sustain_release_rate'])
 		self.crateksSlider.setValue(self.patches[self.bank]['carrier_rate_key_scaling'])
-		self.clevelkshSlider.setValue(self.patches[self.bank]['carrier_level_key_scaling_high'])
-		self.clevelkslSlider.setValue(self.patches[self.bank]['carrier_level_key_scaling_low'])
+		self.clevelkshSlider.setValue(self.lks_hi.index(self.patches[self.bank]['carrier_level_key_scaling_high']))
+		self.clevelkslSlider.setValue(self.lks_lo.index(self.patches[self.bank]['carrier_level_key_scaling_low']))
 
 		self.mstComboBox.setCurrentIndex(self.patches[self.bank]['modulator_sine_table'])
 		self.mcdetune.setChecked(self.patches[self.bank]['modulator_coarse_detune_enable'])
@@ -1109,8 +1111,8 @@ class PortaSound(QDialog):
 		self.mrrateSlider.setValue(self.patches[self.bank]['modulator_release_rate'])
 		self.msrrateSlider.setValue(self.patches[self.bank]['modulator_sustain_release_rate'])
 		self.mrateksSlider.setValue(self.patches[self.bank]['modulator_rate_key_scaling'])
-		self.mlevelkshSlider.setValue(self.patches[self.bank]['modulator_level_key_scaling_high'])
-		self.mlevelkslSlider.setValue(self.patches[self.bank]['modulator_level_key_scaling_low'])
+		self.mlevelkshSlider.setValue(self.lks_hi.index(self.patches[self.bank]['modulator_level_key_scaling_high']))
+		self.mlevelkslSlider.setValue(self.lks_lo.index(self.patches[self.bank]['modulator_level_key_scaling_low']))
 		
 		self.mbyteSlider1.setValue(self.mbytes1.index(self.patches[self.bank]['mystery_byte_1']))
 		self.mbyteSlider2.setValue(self.mbytes2.index(self.patches[self.bank]['mystery_byte_2']))
