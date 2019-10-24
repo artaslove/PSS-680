@@ -4,7 +4,7 @@ from PySide2.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit
         QDial, QDialog, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit,
         QProgressBar, QPushButton, QRadioButton, QScrollBar, QSizePolicy,
         QSlider, QSpinBox, QStyleFactory, QTableWidget, QTabWidget, QTextEdit,
-        QVBoxLayout, QWidget)
+        QVBoxLayout, QWidget, QFileDialog)
 
 import random
 from time import sleep
@@ -755,86 +755,110 @@ class PortaSound(QDialog):
 		self.modulatorBox.setLayout(modulatorboxlayout)
 
 		#### Mystery bytes
-		self.unknownBox = QGroupBox("Mystery Bytes")
+		self.extrasbox = QGroupBox("Extras")
 		q = 1
 		self.mbyteSliders = []
 		mbyteLabels = []
-		unknownboxlayout = QVBoxLayout()
+		extrasboxlayout = QVBoxLayout()
 		self.mbyteSlider1 = QSlider(Qt.Horizontal)
 		self.mbyteSlider1.setMinimum(0)
 		self.mbyteSlider1.setMaximum(1)
 		mbyteLabel1 = QLabel('Mystery Byte 1')
 		mbyteLabel1.setBuddy(self.mbyteSlider1)	
 		self.mbyteSlider1.valueChanged.connect(self.changeMByte1)
-		unknownboxlayout.addWidget(mbyteLabel1)
-		unknownboxlayout.addWidget(self.mbyteSlider1)
+		extrasboxlayout.addWidget(mbyteLabel1)
+		extrasboxlayout.addWidget(self.mbyteSlider1)
 		self.mbyteSlider2 = QSlider(Qt.Horizontal)
 		self.mbyteSlider2.setMinimum(0)
 		self.mbyteSlider2.setMaximum(1)
 		mbyteLabel2 = QLabel('Mystery Byte 2')
 		mbyteLabel2.setBuddy(self.mbyteSlider2)	
 		self.mbyteSlider2.valueChanged.connect(self.changeMByte2)
-		unknownboxlayout.addWidget(mbyteLabel2)
-		unknownboxlayout.addWidget(self.mbyteSlider2)
+		extrasboxlayout.addWidget(mbyteLabel2)
+		extrasboxlayout.addWidget(self.mbyteSlider2)
 		self.mbyteSlider3 = QSlider(Qt.Horizontal)
 		self.mbyteSlider3.setMinimum(0)
 		self.mbyteSlider3.setMaximum(1)
 		mbyteLabel3 = QLabel('Mystery Byte 3')
 		mbyteLabel3.setBuddy(self.mbyteSlider3)	
 		self.mbyteSlider3.valueChanged.connect(self.changeMByte3)
-		unknownboxlayout.addWidget(mbyteLabel3)
-		unknownboxlayout.addWidget(self.mbyteSlider3)
+		extrasboxlayout.addWidget(mbyteLabel3)
+		extrasboxlayout.addWidget(self.mbyteSlider3)
 		self.mbyteSlider4 = QSlider(Qt.Horizontal)
 		self.mbyteSlider4.setMinimum(0)
 		self.mbyteSlider4.setMaximum(2)
 		mbyteLabel4 = QLabel('Mystery Byte 4')
 		mbyteLabel4.setBuddy(self.mbyteSlider4)	
 		self.mbyteSlider4.valueChanged.connect(self.changeMByte4)
-		unknownboxlayout.addWidget(mbyteLabel4)
-		unknownboxlayout.addWidget(self.mbyteSlider4)
+		extrasboxlayout.addWidget(mbyteLabel4)
+		extrasboxlayout.addWidget(self.mbyteSlider4)
 		self.mbyteSlider5 = QSlider(Qt.Horizontal)
 		self.mbyteSlider5.setMinimum(0)
 		self.mbyteSlider5.setMaximum(2)
 		mbyteLabel5 = QLabel('Mystery Byte 5')
 		mbyteLabel5.setBuddy(self.mbyteSlider5)	
 		self.mbyteSlider5.valueChanged.connect(self.changeMByte5)
-		unknownboxlayout.addWidget(mbyteLabel5)
-		unknownboxlayout.addWidget(self.mbyteSlider5)
+		extrasboxlayout.addWidget(mbyteLabel5)
+		extrasboxlayout.addWidget(self.mbyteSlider5)
 		self.mbyteSlider6 = QSlider(Qt.Horizontal)
 		self.mbyteSlider6.setMinimum(0)
 		self.mbyteSlider6.setMaximum(2)
 		mbyteLabel6 = QLabel('Mystery Byte 6')
 		mbyteLabel6.setBuddy(self.mbyteSlider6)	
 		self.mbyteSlider6.valueChanged.connect(self.changeMByte6)
-		unknownboxlayout.addWidget(mbyteLabel6)
-		unknownboxlayout.addWidget(self.mbyteSlider6)
+		extrasboxlayout.addWidget(mbyteLabel6)
+		extrasboxlayout.addWidget(self.mbyteSlider6)
 		self.mbyteSlider7 = QSlider(Qt.Horizontal)
 		self.mbyteSlider7.setMinimum(0)
 		self.mbyteSlider7.setMaximum(4)
 		mbyteLabel7 = QLabel('Mystery Byte 7')
 		mbyteLabel7.setBuddy(self.mbyteSlider7)	
 		self.mbyteSlider7.valueChanged.connect(self.changeMByte7)
-		unknownboxlayout.addWidget(mbyteLabel7)
-		unknownboxlayout.addWidget(self.mbyteSlider7)
+		extrasboxlayout.addWidget(mbyteLabel7)
+		extrasboxlayout.addWidget(self.mbyteSlider7)
 		self.mbyteSlider8 = QSlider(Qt.Horizontal)
 		self.mbyteSlider8.setMinimum(0)
 		self.mbyteSlider8.setMaximum(4)
 		mbyteLabel8 = QLabel('Mystery Byte 8')
 		mbyteLabel8.setBuddy(self.mbyteSlider8)	
 		self.mbyteSlider8.valueChanged.connect(self.changeMByte8)
-		unknownboxlayout.addWidget(mbyteLabel8)
-		unknownboxlayout.addWidget(self.mbyteSlider8)
+		extrasboxlayout.addWidget(mbyteLabel8)
+		extrasboxlayout.addWidget(self.mbyteSlider8)
 		self.mbyteSlider9 = QSlider(Qt.Horizontal)
 		self.mbyteSlider9.setMinimum(0)
 		self.mbyteSlider9.setMaximum(7)
 		mbyteLabel9 = QLabel('Mystery Byte 9')
 		mbyteLabel9.setBuddy(self.mbyteSlider9)	
 		self.mbyteSlider9.valueChanged.connect(self.changeMByte9)
-		unknownboxlayout.addWidget(mbyteLabel9)
-		unknownboxlayout.addWidget(self.mbyteSlider9)
+		extrasboxlayout.addWidget(mbyteLabel9)
+		extrasboxlayout.addWidget(self.mbyteSlider9)
 
-		unknownboxlayout.addStretch(1)
-		self.unknownBox.setLayout(unknownboxlayout)
+		loadpatchesbutton = QPushButton("Load 5 Patches", self)
+		loadpatchesbutton.clicked.connect(self.loadPatches)
+		extrasboxlayout.addWidget(loadpatchesbutton)
+
+		loadpatchbutton = QPushButton("Load 1 Patch", self)
+		loadpatchbutton.clicked.connect(self.loadPatch)
+		extrasboxlayout.addWidget(loadpatchbutton)
+
+		savepatchesbutton = QPushButton("Save 5 Patches", self)
+		savepatchesbutton.clicked.connect(self.savePatches)
+		extrasboxlayout.addWidget(savepatchesbutton)
+
+		savepatchbutton = QPushButton("Save 1 Patch", self)
+		savepatchbutton.clicked.connect(self.savePatch)
+		extrasboxlayout.addWidget(savepatchbutton)
+
+		randompatchesbutton = QPushButton("&5 Random Patches", self)
+		randompatchesbutton.clicked.connect(self.randomPatches)
+		extrasboxlayout.addWidget(randompatchesbutton)
+
+		randompatchbutton = QPushButton("&1 Random Patch", self)
+		randompatchbutton.clicked.connect(self.randomPatch)
+		extrasboxlayout.addWidget(randompatchbutton)
+
+		extrasboxlayout.addStretch(1)
+		self.extrasbox.setLayout(extrasboxlayout)
 
 		#### Others
 		self.bankComboBox = QComboBox()
@@ -903,7 +927,7 @@ class PortaSound(QDialog):
 		mainLayout.addLayout(topLayout, 0, 0, 1, 2)
 		mainLayout.addWidget(self.carrierBox, 1, 0)		
 		mainLayout.addWidget(self.modulatorBox, 1, 1)		
-		mainLayout.addWidget(self.unknownBox, 1, 2)
+		mainLayout.addWidget(self.extrasbox, 1, 2)
 		mainLayout.addLayout(bottomBox, 2, 0, 1, 3)
 		mainLayout.addLayout(verybottomBox, 3, 0, 1, 3)
 		mainLayout.setRowStretch(2,1)		
@@ -1256,6 +1280,26 @@ class PortaSound(QDialog):
 			patch['mystery_byte_9'] = self.mbytes9[self.mbyteSlider9.value()]			
 			self.patches.append(patch)
 			i = i + 1
+
+	def loadPatches(self):
+		filename = QFileDialog.getOpenFileName(self, "Load 5 Patches", "", "Sysex files (*.syx)")
+		print(filename[0])
+
+	def loadPatch(self):
+		filename = QFileDialog.getOpenFileName(self, "Load Patch", "", "Sysex files (*.syx)")
+
+	def savePatches(self):
+		filename = QFileDialog.getSaveFileName(self, "Save 5 Patches", "", "Sysex files (*.syx)")
+
+	def savePatch(self):
+		filename = QFileDialog.getSaveFileName(self, "Save Patch", "", "Sysex files (*.syx)")
+
+	def randomPatches(self):
+		print("it worked!")
+
+	def randomPatch(self):
+		print("it worked!")
+
 
 if __name__ == '__main__':
 	os.environ['QT_SCALE_FACTOR'] = '1'
