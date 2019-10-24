@@ -1,7 +1,7 @@
 # PSS-680
 Yamaha PortaSound PSS-680 Patches
 
-This is the beginnings of an editor librarian for the Yamaha PortaSound PSS-680, using system exclusive data dumps. 
+This is an editor librarian for the Yamaha PortaSound PSS-680, using system exclusive data dumps. 
 
 Work in progress.  
 
