@@ -8,7 +8,7 @@ from PySide2.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit
 
 import random
 from time import sleep
-import sys
+import sys, os
 import hashlib
 import subprocess
 #import jack
@@ -86,15 +86,15 @@ class PortaSound(QDialog):
 					mask = 1 << 3
 					tempv = v & mask
 					if tempv > 0:
-						patch['modulator_amplitude_modulation_enable'] = True
+						patch['modulator_amplitude_modulation'] = True
 					else:
-						patch['modulator_amplitude_modulation_enable'] = False
+						patch['modulator_amplitude_modulation'] = False
 					mask = 1 << 2
 					tempv = v & mask
 					if tempv > 0:
-						patch['modulator_coarse_detune_enable'] = True
+						patch['modulator_coarse_detune'] = True
 					else:
-						patch['modulator_coarse_detune_enable'] = False
+						patch['modulator_coarse_detune'] = False
 					mask = ~(3 << 2)
 					tempv = (v & mask) << 4
 				if i == 23:
@@ -103,15 +103,15 @@ class PortaSound(QDialog):
 					mask = 1 << 3
 					tempv = v & mask
 					if tempv > 0:
-						patch['carrier_amplitude_modulation_enable'] = True
+						patch['carrier_amplitude_modulation'] = True
 					else:
-						patch['carrier_amplitude_modulation_enable'] = False
+						patch['carrier_amplitude_modulation'] = False
 					mask = 1 << 2
 					tempv = v & mask
 					if tempv > 0:
-						patch['carrier_coarse_detune_enable'] = True
+						patch['carrier_coarse_detune'] = True
 					else:
-						patch['carrier_coarse_detune_enable'] = False
+						patch['carrier_coarse_detune'] = False
 					mask = ~(3 << 2)
 					tempv = (v & mask) << 4
 				if i == 25:
@@ -209,7 +209,6 @@ class PortaSound(QDialog):
 			byte = f.read(1)
 			if not byte:
 				break
-			#byte = byte_s[0]
 			v = int.from_bytes(byte, byteorder="little")
 			if i == 0: 
 				if v != self.patch_header[0]:
@@ -347,7 +346,7 @@ class PortaSound(QDialog):
 		self.try_to_send_file(path)
 
 	def try_to_send_file(self,path):
-		if self.sending == False:
+		if self.sending == False and self.ready == True:
 			self.sending = True
 			subprocess.Popen(["amidi","-p","hw:5,0,1","-s",path])
 			sleep(0.05)
@@ -389,10 +388,10 @@ class PortaSound(QDialog):
 		checksum = self.writepatchchar(f,v,checksum)
 		v = patch['modulator_decay_rate_1'] >> 4
 		mask = 1 << 3
-		if patch['modulator_amplitude_modulation_enable'] == True:
+		if patch['modulator_amplitude_modulation'] == True:
 			v = v | mask
 		mask = 1 << 2
-		if patch['modulator_coarse_detune_enable'] == True:
+		if patch['modulator_coarse_detune'] == True:
 			v = v | mask
 		checksum = self.writepatchchar(f,v,checksum)
 		mask = ~(3 << 4)
@@ -400,10 +399,10 @@ class PortaSound(QDialog):
 		checksum = self.writepatchchar(f,v,checksum)
 		v = patch['carrier_decay_rate_1'] >> 4
 		mask = 1 << 3
-		if patch['carrier_amplitude_modulation_enable'] == True:
+		if patch['carrier_amplitude_modulation'] == True:
 			v = v | mask
 		mask = 1 << 2
-		if patch['carrier_coarse_detune_enable'] == True:
+		if patch['carrier_coarse_detune'] == True:
 			v = v | mask
 		checksum = self.writepatchchar(f,v,checksum)
 		mask = ~(3 << 4)
@@ -459,25 +458,16 @@ class PortaSound(QDialog):
 		f.write((self.twos_comp_b(checksum)).to_bytes(1, byteorder="little"))
 		f.write((self.patch_footer).to_bytes(1, byteorder="little"))
 
-
-	def __init__(self, parent=None):
-		super(PortaSound, self).__init__(parent)
-		#self.connection = jack.Client('PSS-680 Editor')
-		#self.inport = self.connection.midi_inports.register('midi_in')
-		#self.outport = self.connection.midi_outports.register('midi_out')
-		if len(sys.argv) != 2:
-			print("Usage: ", str(sys.argv[0]), "[filename]")
-			exit()
-		self.sending = False
+	def test_routine(self, path):
 		self.random_patches(sys.argv[1])
 		if self.check_binary(sys.argv[1]) == True:
 			if self.load_patches(sys.argv[1]) == True:
-				self.write_patches(self.patches,'test.syx')
+				self.write_patches(self.patches,path)
 				rfile = open(sys.argv[1],'rb')
 				data = rfile.read()
 				rfilemd5 = hashlib.md5()
 				rfilemd5.update(data)
-				pfile = open('test.syx','rb')
+				pfile = open(path,'rb')
 				data = pfile.read()
 				pfilemd5 = hashlib.md5()
 				pfilemd5.update(data)
@@ -485,6 +475,16 @@ class PortaSound(QDialog):
 					print("Something is not right!")
 		else:
 			 print("Something went wrong with the patch generation.")
+
+	def __init__(self, parent=None):
+		super(PortaSound, self).__init__(parent)
+		#self.connection = jack.Client('PSS-680 Editor')
+		#self.inport = self.connection.midi_inports.register('midi_in')
+		#self.outport = self.connection.midi_outports.register('midi_out')
+		#if len(sys.argv) != 2:
+		#	print("Usage: ", str(sys.argv[0]), "[filename]")
+		#	exit()
+		self.sending = False
 
 		#### Carrier
 		self.carrierBox = QGroupBox("Carrier")
@@ -858,6 +858,13 @@ class PortaSound(QDialog):
 		pitchmodLabel.setBuddy(self.pitchmodSlider)
 		self.pitchmodSlider.valueChanged.connect(self.changePitchMod)
 
+		self.ampmodSlider = QSlider(Qt.Horizontal)
+		self.ampmodSlider.setMinimum(0)
+		self.ampmodSlider.setMaximum(3)
+		ampmodLabel = QLabel("&Amplitude Modulation Sensitivity:")
+		ampmodLabel.setBuddy(self.ampmodSlider)
+		self.ampmodSlider.valueChanged.connect(self.changeAmpMod)
+
 		self.vibdelaySlider = QSlider(Qt.Horizontal)
 		self.vibdelaySlider.setMinimum(0)
 		self.vibdelaySlider.setMaximum(127)
@@ -881,11 +888,16 @@ class PortaSound(QDialog):
 		bottomBox.addWidget(self.feedbackSlider)
 		bottomBox.addWidget(pitchmodLabel)
 		bottomBox.addWidget(self.pitchmodSlider)
+		bottomBox.addWidget(ampmodLabel)
+		bottomBox.addWidget(self.ampmodSlider)
 		bottomBox.addWidget(vibdelayLabel)
 		bottomBox.addWidget(self.vibdelaySlider)
-		bottomBox.addWidget(self.vibrato)		
-		bottomBox.addWidget(self.sustain)
 		bottomBox.addStretch(1)
+
+		verybottomBox = QHBoxLayout()
+		verybottomBox.addWidget(self.vibrato)		
+		verybottomBox.addWidget(self.sustain)
+
 
 		mainLayout = QGridLayout()
 		mainLayout.addLayout(topLayout, 0, 0, 1, 2)
@@ -893,6 +905,7 @@ class PortaSound(QDialog):
 		mainLayout.addWidget(self.modulatorBox, 1, 1)		
 		mainLayout.addWidget(self.unknownBox, 1, 2)
 		mainLayout.addLayout(bottomBox, 2, 0, 1, 3)
+		mainLayout.addLayout(verybottomBox, 3, 0, 1, 3)
 		mainLayout.setRowStretch(2,1)		
 
 		self.setLayout(mainLayout)
@@ -904,6 +917,10 @@ class PortaSound(QDialog):
 
 	def changePitchMod(self):
 		self.patches[self.bank]['pitch_modulation_sensitivity'] = self.pitchmodSlider.value()
+		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+
+	def changeAmpMod(self):
+		self.patches[self.bank]['amplitude_modulation_sensitivity'] = self.ampmodSlider.value()
 		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeVibDelay(self):
@@ -927,20 +944,22 @@ class PortaSound(QDialog):
 		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeCFDetune(self):
-		self.patches[self.bank]['carrier_fine_detune'] = self.detune[self.cfdetuneSlider.value()]
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['carrier_fine_detune'] = self.detune[self.cfdetuneSlider.value()]
+			self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeCFMult(self):
 		self.patches[self.bank]['carrier_frequency_multiple'] = self.cfmultSlider.value()
 		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeCAmpMod(self):
-		self.patches[self.bank]['carrier_amplitude_modulation_enable'] = self.campmod.isChecked()
+		self.patches[self.bank]['carrier_amplitude_modulation'] = self.campmod.isChecked()
 		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeCTLevel(self):
-		self.patches[self.bank]['carrier_total_level'] = self.ctlevelSlider.value()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['carrier_total_level'] = self.ctlevelSlider.value()
+			self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 	
 	def changeCARate(self):
 		self.patches[self.bank]['carrier_attack_rate'] = self.carateSlider.value()
@@ -971,12 +990,14 @@ class PortaSound(QDialog):
 		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeCLevelKSH(self):
-		self.patches[self.bank]['carrier_level_key_scaling_high'] = self.clevelkshSlider.value()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['carrier_level_key_scaling_high'] = self.lks_hi[self.clevelkshSlider.value()]
+			self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeCLevelKSL(self):
-		self.patches[self.bank]['carrier_level_key_scaling_low'] = self.clevelkslSlider.value()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['carrier_level_key_scaling_low'] = self.lks_lo[self.clevelkslSlider.value()]
+			self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMST(self):
 		self.patches[self.bank]['modulator_sine_table'] = self.mstComboBox.currentIndex()
@@ -987,20 +1008,22 @@ class PortaSound(QDialog):
 		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMFDetune(self):
-		self.patches[self.bank]['modulator_fine_detune'] = self.mfdetuneSlider.value()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['modulator_fine_detune'] = self.mfdetuneSlider.value()
+			self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMFMult(self):
 		self.patches[self.bank]['modulator_frequency_multiple'] = self.mfmultSlider.value()
 		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMAmpMod(self):
-		self.patches[self.bank]['modulator_amplitude_modulation_enable'] = self.mampmod.isChecked()
+		self.patches[self.bank]['modulator_amplitude_modulation'] = self.mampmod.isChecked()
 		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMTLevel(self):
-		self.patches[self.bank]['modulator_total_level'] = self.mtlevelSlider.value()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['modulator_total_level'] = self.mtlevelSlider.value()
+			self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 	
 	def changeMARate(self):
 		self.patches[self.bank]['modulator_attack_rate'] = self.marateSlider.value()
@@ -1031,12 +1054,14 @@ class PortaSound(QDialog):
 		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMLevelKSH(self):
-		self.patches[self.bank]['modulator_level_key_scaling_high'] = self.lks_hi[self.mlevelkshSlider.value()]
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['modulator_level_key_scaling_high'] = self.lks_hi[self.mlevelkshSlider.value()]
+			self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMLevelKSL(self):
-		self.patches[self.bank]['modulator_level_key_scaling_low'] = self.lks_lo[self.mlevelkslSlider.value()]
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['modulator_level_key_scaling_low'] = self.lks_lo[self.mlevelkslSlider.value()]
+			self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeMByte1(self):
 		self.patches[self.bank]['mystery_byte_1'] = self.mbytes1[self.mbyteSlider1.value()]
@@ -1075,18 +1100,20 @@ class PortaSound(QDialog):
 		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
 
 	def changeBank(self):
+		self.ready = False
 		self.bank = int(self.bankComboBox.currentText())
 		self.feedbackSlider.setValue(self.patches[self.bank]['feedback'])
 		self.pitchmodSlider.setValue(self.patches[self.bank]['pitch_modulation_sensitivity'])
+		self.ampmodSlider.setValue(self.patches[self.bank]['amplitude_modulation_sensitivity'])
 		self.vibdelaySlider.setValue(self.patches[self.bank]['vibrato_delay_time'])
 		self.sustain.setChecked(self.patches[self.bank]['sustain_enable'])
 		self.vibrato.setChecked(self.patches[self.bank]['vibrato_enable'])
 
 		self.cstComboBox.setCurrentIndex(self.patches[self.bank]['carrier_sine_table'])
-		self.ccdetune.setChecked(self.patches[self.bank]['carrier_coarse_detune_enable'])
+		self.ccdetune.setChecked(self.patches[self.bank]['carrier_coarse_detune'])
 		self.cfdetuneSlider.setValue(self.detune.index(self.patches[self.bank]['carrier_fine_detune']))
 		self.cfmultSlider.setValue(self.patches[self.bank]['carrier_frequency_multiple'])
-		self.campmod.setChecked(self.patches[self.bank]['carrier_amplitude_modulation_enable'])
+		self.campmod.setChecked(self.patches[self.bank]['carrier_amplitude_modulation'])
 		self.ctlevelSlider.setValue(self.patches[self.bank]['carrier_total_level'])
 		self.carateSlider.setValue(self.patches[self.bank]['carrier_attack_rate'])
 		self.cdrate1Slider.setValue(self.patches[self.bank]['carrier_decay_rate_1'])
@@ -1099,10 +1126,10 @@ class PortaSound(QDialog):
 		self.clevelkslSlider.setValue(self.lks_lo.index(self.patches[self.bank]['carrier_level_key_scaling_low']))
 
 		self.mstComboBox.setCurrentIndex(self.patches[self.bank]['modulator_sine_table'])
-		self.mcdetune.setChecked(self.patches[self.bank]['modulator_coarse_detune_enable'])
-		self.mfdetuneSlider.setValue(self.patches[self.bank]['modulator_fine_detune'])
+		self.mcdetune.setChecked(self.patches[self.bank]['modulator_coarse_detune'])
+		self.mfdetuneSlider.setValue(self.detune.index(self.patches[self.bank]['modulator_fine_detune']))
 		self.mfmultSlider.setValue(self.patches[self.bank]['modulator_frequency_multiple'])
-		self.mampmod.setChecked(self.patches[self.bank]['modulator_amplitude_modulation_enable'])
+		self.mampmod.setChecked(self.patches[self.bank]['modulator_amplitude_modulation'])
 		self.mtlevelSlider.setValue(self.patches[self.bank]['modulator_total_level'])
 		self.marateSlider.setValue(self.patches[self.bank]['modulator_attack_rate'])
 		self.mdrate1Slider.setValue(self.patches[self.bank]['modulator_decay_rate_1'])
@@ -1123,11 +1150,119 @@ class PortaSound(QDialog):
 		self.mbyteSlider7.setValue(self.mbytes7.index(self.patches[self.bank]['mystery_byte_7']))
 		self.mbyteSlider8.setValue(self.mbytes8.index(self.patches[self.bank]['mystery_byte_8']))
 		self.mbyteSlider9.setValue(self.mbytes9.index(self.patches[self.bank]['mystery_byte_9']))
+		self.ready = True
 
-if __name__ == '__main__':			
-	app = QApplication([])
+	def initBanks(self):
+		self.ready = False
+		self.bank = 0
+		self.patches = []
+		self.feedbackSlider.setValue(0)
+		self.pitchmodSlider.setValue(0)
+		self.ampmodSlider.setValue(0)
+		self.vibdelaySlider.setValue(0)
+		self.sustain.setChecked(False)
+		self.vibrato.setChecked(False)
+
+		self.cstComboBox.setCurrentIndex(0)
+		self.ccdetune.setChecked(False)
+		self.cfdetuneSlider.setValue(self.detune.index(0))
+		self.cfmultSlider.setValue(0)
+		self.campmod.setChecked(False)
+		self.ctlevelSlider.setValue(99)
+		self.carateSlider.setValue(0)
+		self.cdrate1Slider.setValue(0)
+		self.cdlevelSlider.setValue(0)
+		self.cdrate2Slider.setValue(0)
+		self.crrateSlider.setValue(0)
+		self.csrrateSlider.setValue(0)
+		self.crateksSlider.setValue(0)
+		self.clevelkshSlider.setValue(self.lks_hi.index(0))
+		self.clevelkslSlider.setValue(self.lks_lo.index(0))
+
+		self.mstComboBox.setCurrentIndex(0)
+		self.mcdetune.setChecked(False)
+		self.mfdetuneSlider.setValue(self.detune.index(0))
+		self.mfmultSlider.setValue(0)
+		self.mampmod.setChecked(False)
+		self.mtlevelSlider.setValue(99)
+		self.marateSlider.setValue(0)
+		self.mdrate1Slider.setValue(0)
+		self.mdlevelSlider.setValue(0)
+		self.mdrate2Slider.setValue(0)
+		self.mrrateSlider.setValue(0)
+		self.msrrateSlider.setValue(0)
+		self.mrateksSlider.setValue(0)
+		self.mlevelkshSlider.setValue(self.lks_hi.index(0))
+		self.mlevelkslSlider.setValue(self.lks_lo.index(0))
+		
+		self.mbyteSlider1.setValue(self.mbytes1.index(9))
+		self.mbyteSlider2.setValue(self.mbytes2.index(14))
+		self.mbyteSlider3.setValue(self.mbytes3.index(0))
+		self.mbyteSlider4.setValue(self.mbytes4.index(0))
+		self.mbyteSlider5.setValue(self.mbytes5.index(2))
+		self.mbyteSlider6.setValue(self.mbytes6.index(13))
+		self.mbyteSlider7.setValue(self.mbytes7.index(0))
+		self.mbyteSlider8.setValue(self.mbytes8.index(5))
+		self.mbyteSlider9.setValue(self.mbytes9.index(0))
+		self.ready = True
+		i = 0
+		while i < 5:
+			patch = {}
+			patch['bank'] = i
+			patch['feedback'] = self.feedbackSlider.value()
+			patch['pitch_modulation_sensitivity'] = self.pitchmodSlider.value()
+			patch['amplitude_modulation_sensitivity'] = self.pitchmodSlider.value()
+			patch['vibrato_delay_time'] = self.vibdelaySlider.value()
+			patch['sustain_enable'] = self.sustain.isChecked()
+			patch['vibrato_enable'] = self.vibrato.isChecked()
+			patch['carrier_sine_table'] = self.cstComboBox.currentIndex()
+			patch['carrier_coarse_detune'] = self.ccdetune.isChecked()
+			patch['carrier_fine_detune'] = self.detune[self.cfdetuneSlider.value()]
+			patch['carrier_frequency_multiple'] = self.cfmultSlider.value()
+			patch['carrier_amplitude_modulation'] = self.campmod.isChecked()
+			patch['carrier_total_level'] = self.ctlevelSlider.value()
+			patch['carrier_attack_rate'] = self.carateSlider.value()
+			patch['carrier_decay_rate_1'] = self.cdrate1Slider.value()
+			patch['carrier_decay_level'] = self.cdlevelSlider.value()
+			patch['carrier_decay_rate_2'] = self.cdrate2Slider.value()
+			patch['carrier_release_rate'] = self.crrateSlider.value()
+			patch['carrier_sustain_release_rate'] = self.csrrateSlider.value()
+			patch['carrier_rate_key_scaling'] = self.crateksSlider.value()
+			patch['carrier_level_key_scaling_high'] = self.lks_hi[self.clevelkshSlider.value()]
+			patch['carrier_level_key_scaling_low'] = self.lks_lo[self.clevelkslSlider.value()]
+			patch['modulator_sine_table'] = self.mstComboBox.currentIndex()
+			patch['modulator_coarse_detune'] = self.mcdetune.isChecked()
+			patch['modulator_fine_detune'] = self.mfdetuneSlider.value()
+			patch['modulator_frequency_multiple'] = self.mfmultSlider.value()
+			patch['modulator_amplitude_modulation'] = self.mampmod.isChecked()
+			patch['modulator_total_level'] = self.mtlevelSlider.value()
+			patch['modulator_attack_rate'] = self.marateSlider.value()
+			patch['modulator_decay_rate_1'] = self.mdrate1Slider.value()
+			patch['modulator_decay_level'] = self.mdlevelSlider.value()
+			patch['modulator_decay_rate_2'] = self.mdrate2Slider.value()
+			patch['modulator_release_rate'] = self.mrrateSlider.value()
+			patch['modulator_sustain_release_rate'] = self.msrrateSlider.value()
+			patch['modulator_rate_key_scaling'] = self.mrateksSlider.value()
+			patch['modulator_level_key_scaling_high'] = self.lks_hi[self.mlevelkshSlider.value()]
+			patch['modulator_level_key_scaling_low'] = self.lks_lo[self.mlevelkslSlider.value()]
+			patch['mystery_byte_1'] = self.mbytes1[self.mbyteSlider1.value()]
+			patch['mystery_byte_2'] = self.mbytes2[self.mbyteSlider2.value()]
+			patch['mystery_byte_3'] = self.mbytes3[self.mbyteSlider3.value()]
+			patch['mystery_byte_4'] = self.mbytes4[self.mbyteSlider4.value()]
+			patch['mystery_byte_5'] = self.mbytes5[self.mbyteSlider5.value()]
+			patch['mystery_byte_6'] = self.mbytes6[self.mbyteSlider6.value()]
+			patch['mystery_byte_7'] = self.mbytes7[self.mbyteSlider7.value()]
+			patch['mystery_byte_8'] = self.mbytes8[self.mbyteSlider8.value()]
+			patch['mystery_byte_9'] = self.mbytes9[self.mbyteSlider9.value()]			
+			self.patches.append(patch)
+			i = i + 1
+
+if __name__ == '__main__':
+	os.environ['QT_SCALE_FACTOR'] = '1'
+	QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
+	app = QApplication(sys.argv)
 	p = PortaSound()
-	p.changeBank()
+	p.initBanks()
 	p.show()
 	app.exec_()
 	#p.connection.deactivate()
