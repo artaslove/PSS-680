@@ -152,12 +152,26 @@ class PortaSound(QDialog):
 				if i == 33:
 					patch['carrier_release_rate'] = v
 				if i == 34:
+					mask = 1 << 2
+					tempv = v & mask
+					if tempv > 0:
+						patch['mystery_bit_1'] = True
+						v = v - 4
+					else:
+						patch['mystery_bit_1'] = False
 					tempv = v << 1
 				if i == 35:
 					patch['feedback'] = tempv + ( v >> 3 )
 				if i == 36:
 					patch['pitch_modulation_sensitivity'] = v 							
 				if i == 37:
+					mask = 1 << 3
+					tempv = v & mask
+					if tempv > 0:
+						patch['mystery_bit_2'] = True
+						v = v - 8
+					else:
+						patch['mystery_bit_2'] = False
 					patch['amplitude_modulation_sensitivity'] = v
 				if i == 38:
 					patch['mystery_byte_1'] = v 							
@@ -320,10 +334,10 @@ class PortaSound(QDialog):
 			checksum = self.writerandomchar(f,0,15,1,checksum)		# Modulator Release Rate
 			checksum = self.writerandomchar(f,0,15,1,checksum) 		# Carrier Decay 1 Level 
 			checksum = self.writerandomchar(f,0,15,1,checksum)		# Carrier Release Rate
-			checksum = self.writerandomchar(f,0,3,1,checksum) 		# Feedback 2 bits 
+			checksum = self.writerandomchar(f,0,7,1,checksum) 		# Feedback 2 bits and an unknown mystery bit at 3 
 			checksum = self.writerandomchar(f,0,1,8,checksum)		# Feedback bit 4 only
 			checksum = self.writerandomchar(f,0,7,1,checksum) 		# Pitch Modulation sensitivity 3 bits 
-			checksum = self.writerandomchar(f,0,3,1,checksum)		# Amplitude Modulation sensitivity 2 bits
+			checksum = self.writerandomchar2(f,[0,1,2,3,8,9,10,11],checksum) # Amplitude Modulation sensitivity 2 bits and an unknown bit at 4
 			checksum = self.writerandomchar(f,9,10,1,checksum)		# 09 0A Here be dragons - these chr appear in patches, but are not in the manual
 			checksum = self.writerandomchar(f,14,15,1,checksum)		# 0E 0F 
 			checksum = self.writerandomchar(f,0,1,1,checksum)		# 00 01
@@ -440,13 +454,20 @@ class PortaSound(QDialog):
 		checksum = self.writepatchchar(f,patch['modulator_release_rate'],checksum)
 		checksum = self.writepatchchar(f,patch['carrier_decay_level'],checksum)
 		checksum = self.writepatchchar(f,patch['carrier_release_rate'],checksum)
-		v = patch['feedback'] >> 1
+		if patch['mystery_bit_1'] == True:
+			v = (patch['feedback'] >> 1) + 4
+		else:
+			v = patch['feedback'] >> 1
 		checksum = self.writepatchchar(f,v,checksum)
 		mask = ~(3 << 1)
 		v = (patch['feedback'] & mask) << 3
 		checksum = self.writepatchchar(f,v,checksum)
 		checksum = self.writepatchchar(f,patch['pitch_modulation_sensitivity'],checksum)
-		checksum = self.writepatchchar(f,patch['amplitude_modulation_sensitivity'],checksum)
+		if patch['mystery_bit_2'] == True:
+			v = patch['amplitude_modulation_sensitivity'] + 8
+		else: 
+			v = patch['amplitude_modulation_sensitivity']
+		checksum = self.writepatchchar(f,v,checksum)
 		checksum = self.writepatchchar(f,patch['mystery_byte_1'],checksum)
 		checksum = self.writepatchchar(f,patch['mystery_byte_2'],checksum)
 		checksum = self.writepatchchar(f,patch['mystery_byte_3'],checksum)
@@ -864,6 +885,14 @@ class PortaSound(QDialog):
 		extrasboxlayout.addWidget(mbyteLabel9)
 		extrasboxlayout.addWidget(self.mbyteSlider9)
 
+		self.mbitCheckBox1 = QCheckBox("Mystery Bit 1")
+		self.mbitCheckBox1.toggled.connect(self.changeMBit1)
+		extrasboxlayout.addWidget(self.mbitCheckBox1)
+
+		self.mbitCheckBox2 = QCheckBox("Mystery Bit 2")
+		self.mbitCheckBox2.toggled.connect(self.changeMBit2)
+		extrasboxlayout.addWidget(self.mbitCheckBox2)
+
 		loadpatchesbutton = QPushButton("Load 5 Patches", self)
 		loadpatchesbutton.clicked.connect(lambda x: self.loadPatches(5,"Load 5 Patches"))
 		extrasboxlayout.addWidget(loadpatchesbutton)
@@ -1219,6 +1248,16 @@ class PortaSound(QDialog):
 			self.patches[self.bank]['mystery_byte_9'] = self.mbytes9[self.mbyteSlider9.value()]
 			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
+	def changeMBit1(self):
+		if len(self.patches) > 0:
+			self.patches[self.bank]['mystery_bit_1'] = self.mbitCheckBox1.isChecked()
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
+
+	def changeMBit2(self):
+		if len(self.patches) > 0:
+			self.patches[self.bank]['mystery_bit_2'] = self.mbitCheckBox2.isChecked()
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
+
 	def changeMIDID(self):
 		self.midi_device = self.midi_devices[self.mididComboBox.currentText()]
 
@@ -1280,6 +1319,10 @@ class PortaSound(QDialog):
 		self.mbyteSlider7.setValue(self.mbytes7.index(self.patches[self.bank]['mystery_byte_7']))
 		self.mbyteSlider8.setValue(self.mbytes8.index(self.patches[self.bank]['mystery_byte_8']))
 		self.mbyteSlider9.setValue(self.mbytes9.index(self.patches[self.bank]['mystery_byte_9']))
+
+		self.mbitCheckBox1.setChecked(self.patches[self.bank]['mystery_bit_1'])
+		self.mbitCheckBox2.setChecked(self.patches[self.bank]['mystery_bit_2'])
+
 		self.ready = True
 
 	def initBanks(self):
@@ -1335,6 +1378,9 @@ class PortaSound(QDialog):
 		self.mbyteSlider8.setValue(self.mbytes8.index(5))
 		self.mbyteSlider9.setValue(self.mbytes9.index(0))
 
+		self.mbitCheckBox1.setChecked(False)
+		self.mbitCheckBox2.setChecked(False)
+
 		self.mididComboBox.setCurrentIndex(0)
 		self.midicComboBox.setCurrentIndex(0)
 		self.midinoteSlider.setValue(36)
@@ -1388,7 +1434,9 @@ class PortaSound(QDialog):
 			patch['mystery_byte_6'] = self.mbytes6[self.mbyteSlider6.value()]
 			patch['mystery_byte_7'] = self.mbytes7[self.mbyteSlider7.value()]
 			patch['mystery_byte_8'] = self.mbytes8[self.mbyteSlider8.value()]
-			patch['mystery_byte_9'] = self.mbytes9[self.mbyteSlider9.value()]			
+			patch['mystery_byte_9'] = self.mbytes9[self.mbyteSlider9.value()]
+			patch['mystery_bit_1'] = self.mbitCheckBox1.isChecked()
+			patch['mystery_bit_2'] = self.mbitCheckBox2.isChecked()
 			self.patches.append(patch)
 			i = i + 1
 
