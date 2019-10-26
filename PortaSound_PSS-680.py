@@ -19,23 +19,35 @@ class PortaSound(QDialog):
 	detune = [15,14,13,12,11,10,9,8,0,1,2,3,4,5,6,7]
 	lks_hi = [15,14,13,12,11,10,9,8,7,6,5,4,0,3,2,1]
 	lks_lo = [15,14,13,12,11,10,9,8,0,7,6,5,4,3,2,1]
-	mbytes1 = [9,10]
-	mbytes2 = [14,15]
-	mbytes3 = [0,1]
-	mbytes4 = [0,7,11]
-	mbytes5 = [2,6,14]
-	mbytes6 = [13,14,15]
-	mbytes7 = [0,4,5,6,15]
-	mbytes8 = [5,6,7,9,15]
-	mbytes9 = [0,1,3,4,5,7,8,11]
+	mbytes1 = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+	mbytes2 = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+	mbytes3 = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+	mbytes4 = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+	mbytes5 = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+	mbytes6 = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+	mbytes7 = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+	mbytes8 = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+	mbytes9 = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+#	mbytes1 = [9,10]
+#	mbytes2 = [14,15]
+#	mbytes3 = [0,1]
+#	mbytes4 = [0,7,11]
+#	mbytes5 = [2,6,14]
+#	mbytes6 = [13,14,15]
+#	mbytes7 = [0,4,5,6,15]
+#	mbytes8 = [5,6,7,9,15]
+#	mbytes9 = [0,1,3,4,5,7,8,11]
+	midi_note = 36
+	tmp_filename = "/tmp/temp.syx"
 
 	def twos_comp_b(self,val):
 		return 0b1111111 - val + 1
 
-	def load_patches(self, path):
-		if self.check_binary(path) == True:
-			self.patches = []
-			f = open(path,'rb')
+	def load_patches(self, num, filename):
+		if self.check_binary(filename) == 5:
+			if num == 5:
+				self.patches = []
+			f = open(filename,'rb')
 			i = 0
 			z = 0
 			patch = {}
@@ -45,7 +57,10 @@ class PortaSound(QDialog):
 					break
 				v = int.from_bytes(byte, byteorder="little")
 				if i == 5:
-					patch['bank'] = v
+					if num == 5:
+						patch['bank'] = v
+					else:
+						patch['bank'] = self.bankComboBox.currentIndex()
 				if i == 6:
 					patch['modulator_fine_detune'] = v
 				if i == 7:
@@ -185,14 +200,20 @@ class PortaSound(QDialog):
 						patch['sustain_enable'] = False
 				if i == 71:
 					i = -1
-					self.patches.append(patch)
+					if num == 5:
+						self.patches.append(patch)
+					if num == 1:
+						self.patches[patch['bank']] = patch
+						break
 					z = z + 1
-					#for key in sorted(patch.keys()):
-					#	print("%s: %s" % (key, patch[key]))
 					patch = {}
-				i = i + 1			
+				i = i + 1
+			f.close()
+			self.changeBank()
 			return True
 		else:
+			f.close()
+			print("That doesn't appear to be a valid file. Check for extra bytes in front of the system excusive dump. A future version may do this for you.")
 			return False
 
 	def check_binary(self,path):
@@ -242,10 +263,7 @@ class PortaSound(QDialog):
 				validsum = False
 			i = i + 1
 		f.close()
-		if allgood == 5: 
-			return True
-		else:
-			return False
+		return allgood
 	
 	def writerandomchar(self,f,low,high,mult,checksum):
 		r = random.randint(low,high) * mult
@@ -337,18 +355,18 @@ class PortaSound(QDialog):
 		f = open(path,'wb')
 		self.write_patch(f,patch)
 		bank = patch['bank'] + 100
-		f.write(int(192).to_bytes(1,byteorder="little"))
+		f.write(int(192 + self.midi_channel).to_bytes(1,byteorder="little"))
 		f.write(bank.to_bytes(1, byteorder="little"))
-		f.write(int(144).to_bytes(1,byteorder="little"))
-		f.write(int(37).to_bytes(1, byteorder="little"))
-		f.write(int(127).to_bytes(1, byteorder="little"))
+		f.write(int(144 + self.midi_channel).to_bytes(1,byteorder="little"))
+		f.write(int(self.midi_note + self.midi_channel).to_bytes(1, byteorder="little"))
+		f.write(int(127 + self.midi_channel).to_bytes(1, byteorder="little"))
 		f.close()
 		self.try_to_send_file(path)
 
 	def try_to_send_file(self,path):
 		if self.sending == False and self.ready == True:
 			self.sending = True
-			subprocess.Popen(["amidi","-p","hw:5,0,1","-s",path])
+			subprocess.Popen(["amidi","-p",self.midi_device,"-s",path])
 			sleep(0.05)
 			self.sending = False
 
@@ -458,16 +476,18 @@ class PortaSound(QDialog):
 		f.write((self.twos_comp_b(checksum)).to_bytes(1, byteorder="little"))
 		f.write((self.patch_footer).to_bytes(1, byteorder="little"))
 
-	def test_routine(self, path):
-		self.random_patches(sys.argv[1])
-		if self.check_binary(sys.argv[1]) == True:
-			if self.load_patches(sys.argv[1]) == True:
-				self.write_patches(self.patches,path)
-				rfile = open(sys.argv[1],'rb')
+	def test_routine(self):
+		rfile1="/tmp/random_test1.syx"
+		rfile2="/tmp/random_test2.syx"
+		self.random_patches(rfile1)
+		if self.check_binary(rfile1) == 5:
+			if self.load_patches(5,rfile1) == True:
+				self.write_patches(self.patches,rfile2)
+				rfile = open(rfile1,'rb')
 				data = rfile.read()
 				rfilemd5 = hashlib.md5()
 				rfilemd5.update(data)
-				pfile = open(path,'rb')
+				pfile = open(rfile2,'rb')
 				data = pfile.read()
 				pfilemd5 = hashlib.md5()
 				pfilemd5.update(data)
@@ -484,6 +504,15 @@ class PortaSound(QDialog):
 		#if len(sys.argv) != 2:
 		#	print("Usage: ", str(sys.argv[0]), "[filename]")
 		#	exit()
+		self.midi_devices = {}
+		amidi_hw = subprocess.check_output(["amidi","-l"]).decode('utf-8').split('\n')
+		for hw in amidi_hw:
+			hw_split = hw.split('  ')
+			if len(hw_split) > 1:
+				if hw_split[0][0] != 'D':
+					self.midi_devices[hw_split[2]] = hw_split[1]
+		#print(str(self.midi_devices))
+
 		self.sending = False
 
 		#### Carrier
@@ -542,6 +571,7 @@ class PortaSound(QDialog):
 		self.cdlevelSlider = QSlider(Qt.Horizontal)
 		self.cdlevelSlider.setMinimum(0)
 		self.cdlevelSlider.setMaximum(15)
+		self.cdlevelSlider.setInvertedAppearance(True)
 		cdlevelLabel = QLabel("Decay Level:")
 		cdlevelLabel.setBuddy(self.cdlevelSlider)		
 		self.cdlevelSlider.valueChanged.connect(self.changeCDLevel)
@@ -676,6 +706,7 @@ class PortaSound(QDialog):
 		self.mdlevelSlider = QSlider(Qt.Horizontal)
 		self.mdlevelSlider.setMinimum(0)
 		self.mdlevelSlider.setMaximum(15)
+		self.mdlevelSlider.setInvertedAppearance(True)
 		mdlevelLabel = QLabel("Decay Level:")
 		mdlevelLabel.setBuddy(self.mdlevelSlider)		
 		self.mdlevelSlider.valueChanged.connect(self.changeMDLevel)
@@ -762,7 +793,7 @@ class PortaSound(QDialog):
 		extrasboxlayout = QVBoxLayout()
 		self.mbyteSlider1 = QSlider(Qt.Horizontal)
 		self.mbyteSlider1.setMinimum(0)
-		self.mbyteSlider1.setMaximum(1)
+		self.mbyteSlider1.setMaximum(15)
 		mbyteLabel1 = QLabel('Mystery Byte 1')
 		mbyteLabel1.setBuddy(self.mbyteSlider1)	
 		self.mbyteSlider1.valueChanged.connect(self.changeMByte1)
@@ -770,7 +801,7 @@ class PortaSound(QDialog):
 		extrasboxlayout.addWidget(self.mbyteSlider1)
 		self.mbyteSlider2 = QSlider(Qt.Horizontal)
 		self.mbyteSlider2.setMinimum(0)
-		self.mbyteSlider2.setMaximum(1)
+		self.mbyteSlider2.setMaximum(15)
 		mbyteLabel2 = QLabel('Mystery Byte 2')
 		mbyteLabel2.setBuddy(self.mbyteSlider2)	
 		self.mbyteSlider2.valueChanged.connect(self.changeMByte2)
@@ -778,7 +809,7 @@ class PortaSound(QDialog):
 		extrasboxlayout.addWidget(self.mbyteSlider2)
 		self.mbyteSlider3 = QSlider(Qt.Horizontal)
 		self.mbyteSlider3.setMinimum(0)
-		self.mbyteSlider3.setMaximum(1)
+		self.mbyteSlider3.setMaximum(15)
 		mbyteLabel3 = QLabel('Mystery Byte 3')
 		mbyteLabel3.setBuddy(self.mbyteSlider3)	
 		self.mbyteSlider3.valueChanged.connect(self.changeMByte3)
@@ -786,7 +817,7 @@ class PortaSound(QDialog):
 		extrasboxlayout.addWidget(self.mbyteSlider3)
 		self.mbyteSlider4 = QSlider(Qt.Horizontal)
 		self.mbyteSlider4.setMinimum(0)
-		self.mbyteSlider4.setMaximum(2)
+		self.mbyteSlider4.setMaximum(15)
 		mbyteLabel4 = QLabel('Mystery Byte 4')
 		mbyteLabel4.setBuddy(self.mbyteSlider4)	
 		self.mbyteSlider4.valueChanged.connect(self.changeMByte4)
@@ -794,7 +825,7 @@ class PortaSound(QDialog):
 		extrasboxlayout.addWidget(self.mbyteSlider4)
 		self.mbyteSlider5 = QSlider(Qt.Horizontal)
 		self.mbyteSlider5.setMinimum(0)
-		self.mbyteSlider5.setMaximum(2)
+		self.mbyteSlider5.setMaximum(15)
 		mbyteLabel5 = QLabel('Mystery Byte 5')
 		mbyteLabel5.setBuddy(self.mbyteSlider5)	
 		self.mbyteSlider5.valueChanged.connect(self.changeMByte5)
@@ -802,7 +833,7 @@ class PortaSound(QDialog):
 		extrasboxlayout.addWidget(self.mbyteSlider5)
 		self.mbyteSlider6 = QSlider(Qt.Horizontal)
 		self.mbyteSlider6.setMinimum(0)
-		self.mbyteSlider6.setMaximum(2)
+		self.mbyteSlider6.setMaximum(15)
 		mbyteLabel6 = QLabel('Mystery Byte 6')
 		mbyteLabel6.setBuddy(self.mbyteSlider6)	
 		self.mbyteSlider6.valueChanged.connect(self.changeMByte6)
@@ -810,7 +841,7 @@ class PortaSound(QDialog):
 		extrasboxlayout.addWidget(self.mbyteSlider6)
 		self.mbyteSlider7 = QSlider(Qt.Horizontal)
 		self.mbyteSlider7.setMinimum(0)
-		self.mbyteSlider7.setMaximum(4)
+		self.mbyteSlider7.setMaximum(15)
 		mbyteLabel7 = QLabel('Mystery Byte 7')
 		mbyteLabel7.setBuddy(self.mbyteSlider7)	
 		self.mbyteSlider7.valueChanged.connect(self.changeMByte7)
@@ -818,7 +849,7 @@ class PortaSound(QDialog):
 		extrasboxlayout.addWidget(self.mbyteSlider7)
 		self.mbyteSlider8 = QSlider(Qt.Horizontal)
 		self.mbyteSlider8.setMinimum(0)
-		self.mbyteSlider8.setMaximum(4)
+		self.mbyteSlider8.setMaximum(15)
 		mbyteLabel8 = QLabel('Mystery Byte 8')
 		mbyteLabel8.setBuddy(self.mbyteSlider8)	
 		self.mbyteSlider8.valueChanged.connect(self.changeMByte8)
@@ -826,7 +857,7 @@ class PortaSound(QDialog):
 		extrasboxlayout.addWidget(self.mbyteSlider8)
 		self.mbyteSlider9 = QSlider(Qt.Horizontal)
 		self.mbyteSlider9.setMinimum(0)
-		self.mbyteSlider9.setMaximum(7)
+		self.mbyteSlider9.setMaximum(15)
 		mbyteLabel9 = QLabel('Mystery Byte 9')
 		mbyteLabel9.setBuddy(self.mbyteSlider9)	
 		self.mbyteSlider9.valueChanged.connect(self.changeMByte9)
@@ -834,27 +865,27 @@ class PortaSound(QDialog):
 		extrasboxlayout.addWidget(self.mbyteSlider9)
 
 		loadpatchesbutton = QPushButton("Load 5 Patches", self)
-		loadpatchesbutton.clicked.connect(self.loadPatches)
+		loadpatchesbutton.clicked.connect(lambda x: self.loadPatches(5,"Load 5 Patches"))
 		extrasboxlayout.addWidget(loadpatchesbutton)
 
 		loadpatchbutton = QPushButton("Load 1 Patch", self)
-		loadpatchbutton.clicked.connect(self.loadPatch)
+		loadpatchbutton.clicked.connect(lambda x: self.loadPatches(1,"Load 1 Patch"))
 		extrasboxlayout.addWidget(loadpatchbutton)
 
 		savepatchesbutton = QPushButton("Save 5 Patches", self)
-		savepatchesbutton.clicked.connect(self.savePatches)
+		savepatchesbutton.clicked.connect(lambda x: self.savePatches(5, "Save 5 Patches"))
 		extrasboxlayout.addWidget(savepatchesbutton)
 
 		savepatchbutton = QPushButton("Save 1 Patch", self)
-		savepatchbutton.clicked.connect(self.savePatch)
+		savepatchbutton.clicked.connect(lambda x: self.savePatches(1, "Save 1 Patch"))
 		extrasboxlayout.addWidget(savepatchbutton)
 
 		randompatchesbutton = QPushButton("&5 Random Patches", self)
-		randompatchesbutton.clicked.connect(self.randomPatches)
+		randompatchesbutton.clicked.connect(lambda x: self.randomPatches(5))
 		extrasboxlayout.addWidget(randompatchesbutton)
 
 		randompatchbutton = QPushButton("&1 Random Patch", self)
-		randompatchbutton.clicked.connect(self.randomPatch)
+		randompatchbutton.clicked.connect(lambda x: self.randomPatches(1))
 		extrasboxlayout.addWidget(randompatchbutton)
 
 		extrasboxlayout.addStretch(1)
@@ -862,11 +893,26 @@ class PortaSound(QDialog):
 
 		#### Others
 		self.bankComboBox = QComboBox()
-		self.bankComboBox.addItems(["0","1","2","3","4"])
-		self.bank = 0
+		self.bankComboBox.addItems(["1","2","3","4","5"])
 		bankLabel = QLabel("&Bank:")
 		bankLabel.setBuddy(self.bankComboBox)
 		self.bankComboBox.activated[str].connect(self.changeBank)
+
+		self.mididComboBox = QComboBox()
+		for key in sorted(self.midi_devices):
+			self.mididComboBox.addItem(key)
+		mididLabel = QLabel("MIDI Device:")
+		mididLabel.setBuddy(self.mididComboBox)
+		self.mididComboBox.activated[str].connect(self.changeMIDID)
+
+		self.midicComboBox = QComboBox()
+		c = 1
+		while c < 17:
+			self.midicComboBox.addItem(str(c))
+			c = c + 1
+		midicLabel = QLabel("MIDI Channel:")
+		midicLabel.setBuddy(self.midicComboBox)
+		self.midicComboBox.activated[str].connect(self.changeMIDIC)
 		
 		self.feedbackSlider = QSlider(Qt.Horizontal)
 		self.feedbackSlider.setMinimum(0)
@@ -905,6 +951,10 @@ class PortaSound(QDialog):
 		topLayout = QHBoxLayout()
 		topLayout.addWidget(bankLabel)
 		topLayout.addWidget(self.bankComboBox)
+		topLayout.addWidget(mididLabel)
+		topLayout.addWidget(self.mididComboBox)
+		topLayout.addWidget(midicLabel)
+		topLayout.addWidget(self.midicComboBox)
 		topLayout.addStretch(1)
 
 		bottomBox = QVBoxLayout()
@@ -936,196 +986,239 @@ class PortaSound(QDialog):
 		self.setWindowTitle("PortaSound PSS-680 patch editor")
 
 	def changeFeedback(self):
-		self.patches[self.bank]['feedback'] = self.feedbackSlider.value()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['feedback'] = self.feedbackSlider.value()
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changePitchMod(self):
-		self.patches[self.bank]['pitch_modulation_sensitivity'] = self.pitchmodSlider.value()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['pitch_modulation_sensitivity'] = self.pitchmodSlider.value()
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeAmpMod(self):
-		self.patches[self.bank]['amplitude_modulation_sensitivity'] = self.ampmodSlider.value()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['amplitude_modulation_sensitivity'] = self.ampmodSlider.value()
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeVibDelay(self):
-		self.patches[self.bank]['vibrato_delay_time'] = self.vibdelaySlider.value()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['vibrato_delay_time'] = self.vibdelaySlider.value()
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeSustain(self):
-		self.patches[self.bank]['sustain_enable'] = self.sustain.isChecked()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['sustain_enable'] = self.sustain.isChecked()
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeVibrato(self):
-		self.patches[self.bank]['vibrato_enable'] = self.vibrato.isChecked()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['vibrato_enable'] = self.vibrato.isChecked()
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeCST(self):
-		self.patches[self.bank]['carrier_sine_table'] = self.cstComboBox.currentIndex()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['carrier_sine_table'] = self.cstComboBox.currentIndex()
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeCCDetune(self):
-		self.patches[self.bank]['carrier_coarse_detune'] = self.ccdetune.isChecked()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['carrier_coarse_detune'] = self.ccdetune.isChecked()
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeCFDetune(self):
 		if len(self.patches) > 0:
 			self.patches[self.bank]['carrier_fine_detune'] = self.detune[self.cfdetuneSlider.value()]
-			self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeCFMult(self):
-		self.patches[self.bank]['carrier_frequency_multiple'] = self.cfmultSlider.value()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['carrier_frequency_multiple'] = self.cfmultSlider.value()
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeCAmpMod(self):
-		self.patches[self.bank]['carrier_amplitude_modulation'] = self.campmod.isChecked()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['carrier_amplitude_modulation'] = self.campmod.isChecked()
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeCTLevel(self):
 		if len(self.patches) > 0:
 			self.patches[self.bank]['carrier_total_level'] = self.ctlevelSlider.value()
-			self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 	
 	def changeCARate(self):
-		self.patches[self.bank]['carrier_attack_rate'] = self.carateSlider.value()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['carrier_attack_rate'] = self.carateSlider.value()
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeCDRate1(self):
-		self.patches[self.bank]['carrier_decay_rate_1'] = self.cdrate1Slider.value()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['carrier_decay_rate_1'] = self.cdrate1Slider.value()
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeCDLevel(self):
-		self.patches[self.bank]['carrier_decay_level'] = self.cdlevelSlider.value()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['carrier_decay_level'] = self.cdlevelSlider.value()
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeCDRate2(self):
-		self.patches[self.bank]['carrier_decay_rate_2'] = self.cdrate2Slider.value()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['carrier_decay_rate_2'] = self.cdrate2Slider.value()
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeCRRate(self):
-		self.patches[self.bank]['carrier_release_rate'] = self.crrateSlider.value()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['carrier_release_rate'] = self.crrateSlider.value()
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeCSRRate(self):
-		self.patches[self.bank]['carrier_sustain_release_rate'] = self.csrrateSlider.value()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['carrier_sustain_release_rate'] = self.csrrateSlider.value()
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeCRateKS(self):
-		self.patches[self.bank]['carrier_rate_key_scaling'] = self.crateksSlider.value()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['carrier_rate_key_scaling'] = self.crateksSlider.value()
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeCLevelKSH(self):
 		if len(self.patches) > 0:
 			self.patches[self.bank]['carrier_level_key_scaling_high'] = self.lks_hi[self.clevelkshSlider.value()]
-			self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeCLevelKSL(self):
 		if len(self.patches) > 0:
 			self.patches[self.bank]['carrier_level_key_scaling_low'] = self.lks_lo[self.clevelkslSlider.value()]
-			self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeMST(self):
-		self.patches[self.bank]['modulator_sine_table'] = self.mstComboBox.currentIndex()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['modulator_sine_table'] = self.mstComboBox.currentIndex()
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeMCDetune(self):
-		self.patches[self.bank]['modulator_coarse_detune'] = self.mcdetune.isChecked()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['modulator_coarse_detune'] = self.mcdetune.isChecked()
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeMFDetune(self):
 		if len(self.patches) > 0:
 			self.patches[self.bank]['modulator_fine_detune'] = self.mfdetuneSlider.value()
-			self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeMFMult(self):
-		self.patches[self.bank]['modulator_frequency_multiple'] = self.mfmultSlider.value()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['modulator_frequency_multiple'] = self.mfmultSlider.value()
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeMAmpMod(self):
-		self.patches[self.bank]['modulator_amplitude_modulation'] = self.mampmod.isChecked()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['modulator_amplitude_modulation'] = self.mampmod.isChecked()
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeMTLevel(self):
 		if len(self.patches) > 0:
 			self.patches[self.bank]['modulator_total_level'] = self.mtlevelSlider.value()
-			self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 	
 	def changeMARate(self):
-		self.patches[self.bank]['modulator_attack_rate'] = self.marateSlider.value()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['modulator_attack_rate'] = self.marateSlider.value()
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeMDRate1(self):
-		self.patches[self.bank]['modulator_decay_rate_1'] = self.mdrate1Slider.value()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['modulator_decay_rate_1'] = self.mdrate1Slider.value()
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeMDLevel(self):
-		self.patches[self.bank]['modulator_decay_level'] = self.mdlevelSlider.value()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['modulator_decay_level'] = self.mdlevelSlider.value()
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeMDRate2(self):
-		self.patches[self.bank]['modulator_decay_rate_2'] = self.mdrate2Slider.value()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['modulator_decay_rate_2'] = self.mdrate2Slider.value()
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeMRRate(self):
-		self.patches[self.bank]['modulator_release_rate'] = self.mrrateSlider.value()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['modulator_release_rate'] = self.mrrateSlider.value()
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeMSRRate(self):
-		self.patches[self.bank]['modulator_sustain_release_rate'] = self.msrrateSlider.value()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['modulator_sustain_release_rate'] = self.msrrateSlider.value()
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeMRateKS(self):
-		self.patches[self.bank]['modulator_rate_key_scaling'] = self.mrateksSlider.value()
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['modulator_rate_key_scaling'] = self.mrateksSlider.value()
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeMLevelKSH(self):
 		if len(self.patches) > 0:
 			self.patches[self.bank]['modulator_level_key_scaling_high'] = self.lks_hi[self.mlevelkshSlider.value()]
-			self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeMLevelKSL(self):
 		if len(self.patches) > 0:
 			self.patches[self.bank]['modulator_level_key_scaling_low'] = self.lks_lo[self.mlevelkslSlider.value()]
-			self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeMByte1(self):
-		self.patches[self.bank]['mystery_byte_1'] = self.mbytes1[self.mbyteSlider1.value()]
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['mystery_byte_1'] = self.mbytes1[self.mbyteSlider1.value()]
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeMByte2(self):
-		self.patches[self.bank]['mystery_byte_2'] = self.mbytes2[self.mbyteSlider2.value()]
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['mystery_byte_2'] = self.mbytes2[self.mbyteSlider2.value()]
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeMByte3(self):
-		self.patches[self.bank]['mystery_byte_3'] = self.mbytes3[self.mbyteSlider3.value()]
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['mystery_byte_3'] = self.mbytes3[self.mbyteSlider3.value()]
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeMByte4(self):
-		self.patches[self.bank]['mystery_byte_4'] = self.mbytes4[self.mbyteSlider4.value()]
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['mystery_byte_4'] = self.mbytes4[self.mbyteSlider4.value()]
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeMByte5(self):
-		self.patches[self.bank]['mystery_byte_5'] = self.mbytes5[self.mbyteSlider5.value()]
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
-
+		if len(self.patches) > 0:
+			self.patches[self.bank]['mystery_byte_5'] = self.mbytes5[self.mbyteSlider5.value()]
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
+	
 	def changeMByte6(self):
-		self.patches[self.bank]['mystery_byte_6'] = self.mbytes6[self.mbyteSlider6.value()]
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['mystery_byte_6'] = self.mbytes6[self.mbyteSlider6.value()]
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeMByte7(self):
-		self.patches[self.bank]['mystery_byte_7'] = self.mbytes7[self.mbyteSlider7.value()]
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['mystery_byte_7'] = self.mbytes7[self.mbyteSlider7.value()]
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeMByte8(self):
-		self.patches[self.bank]['mystery_byte_8'] = self.mbytes8[self.mbyteSlider8.value()]
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['mystery_byte_8'] = self.mbytes8[self.mbyteSlider8.value()]
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeMByte9(self):
-		self.patches[self.bank]['mystery_byte_9'] = self.mbytes9[self.mbyteSlider9.value()]
-		self.write_and_send_patch(self.patches[self.bank],"/tmp/temp.syx")
+		if len(self.patches) > 0:
+			self.patches[self.bank]['mystery_byte_9'] = self.mbytes9[self.mbyteSlider9.value()]
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
+
+	def changeMIDID(self):
+		self.midi_device = self.midi_devices[self.mididComboBox.currentText()]
+
+	def changeMIDIC(self):
+		self.midi_channel = int(self.midicComboBox.currentIndex())
 
 	def changeBank(self):
 		self.ready = False
-		self.bank = int(self.bankComboBox.currentText())
+		self.bank = int(self.bankComboBox.currentText()) - 1
 		self.feedbackSlider.setValue(self.patches[self.bank]['feedback'])
 		self.pitchmodSlider.setValue(self.patches[self.bank]['pitch_modulation_sensitivity'])
 		self.ampmodSlider.setValue(self.patches[self.bank]['amplitude_modulation_sensitivity'])
@@ -1195,7 +1288,7 @@ class PortaSound(QDialog):
 		self.ctlevelSlider.setValue(99)
 		self.carateSlider.setValue(0)
 		self.cdrate1Slider.setValue(0)
-		self.cdlevelSlider.setValue(0)
+		self.cdlevelSlider.setValue(15)
 		self.cdrate2Slider.setValue(0)
 		self.crrateSlider.setValue(0)
 		self.csrrateSlider.setValue(0)
@@ -1211,7 +1304,7 @@ class PortaSound(QDialog):
 		self.mtlevelSlider.setValue(99)
 		self.marateSlider.setValue(0)
 		self.mdrate1Slider.setValue(0)
-		self.mdlevelSlider.setValue(0)
+		self.mdlevelSlider.setValue(15)
 		self.mdrate2Slider.setValue(0)
 		self.mrrateSlider.setValue(0)
 		self.msrrateSlider.setValue(0)
@@ -1228,6 +1321,10 @@ class PortaSound(QDialog):
 		self.mbyteSlider7.setValue(self.mbytes7.index(0))
 		self.mbyteSlider8.setValue(self.mbytes8.index(5))
 		self.mbyteSlider9.setValue(self.mbytes9.index(0))
+
+		self.mididComboBox.setCurrentIndex(0)
+		self.midicComboBox.setCurrentIndex(0)
+
 		self.ready = True
 		i = 0
 		while i < 5:
@@ -1256,7 +1353,7 @@ class PortaSound(QDialog):
 			patch['carrier_level_key_scaling_low'] = self.lks_lo[self.clevelkslSlider.value()]
 			patch['modulator_sine_table'] = self.mstComboBox.currentIndex()
 			patch['modulator_coarse_detune'] = self.mcdetune.isChecked()
-			patch['modulator_fine_detune'] = self.mfdetuneSlider.value()
+			patch['modulator_fine_detune'] = self.detune[self.mfdetuneSlider.value()]
 			patch['modulator_frequency_multiple'] = self.mfmultSlider.value()
 			patch['modulator_amplitude_modulation'] = self.mampmod.isChecked()
 			patch['modulator_total_level'] = self.mtlevelSlider.value()
@@ -1281,32 +1378,37 @@ class PortaSound(QDialog):
 			self.patches.append(patch)
 			i = i + 1
 
-	def loadPatches(self):
-		filename = QFileDialog.getOpenFileName(self, "Load 5 Patches", "", "Sysex files (*.syx)")
-		print(filename[0])
+	def loadPatches(self,num,desc):
+		filename = QFileDialog.getOpenFileName(self, desc, "", "Sysex files (*.syx)")[0]
+		self.load_patches(num,filename)
 
-	def loadPatch(self):
-		filename = QFileDialog.getOpenFileName(self, "Load Patch", "", "Sysex files (*.syx)")
+	def savePatches(self,num,desc):
+		filename = QFileDialog.getSaveFileName(self, desc, "", "Sysex files (*.syx)")[0]
+		f = open(filename,'wb')
+		if num == 5:
+			for patch in self.patches:
+				self.write_patch(f,patch)
+		if num == 1:
+			self.write_patch(f,self.patches[self.bankComboBox.currentIndex()])
+		f.close()
 
-	def savePatches(self):
-		filename = QFileDialog.getSaveFileName(self, "Save 5 Patches", "", "Sysex files (*.syx)")
-
-	def savePatch(self):
-		filename = QFileDialog.getSaveFileName(self, "Save Patch", "", "Sysex files (*.syx)")
-
-	def randomPatches(self):
-		print("it worked!")
-
-	def randomPatch(self):
-		print("it worked!")
+	def randomPatches(self,num):
+		self.random_patches(self.tmp_filename)
+		self.load_patches(num,self.tmp_filename)
 
 
 if __name__ == '__main__':
-	os.environ['QT_SCALE_FACTOR'] = '1'
+	#os.environ['QT_SCALE_FACTOR'] = '1'
+	amidicheck = subprocess.Popen(["which","amidi"], stdout=subprocess.PIPE, stderr=subprocess.PIPE).returncode
+	if amidicheck == 1:
+		print("amidi not in path, exiting.")
+		exit(1)
 	QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
 	app = QApplication(sys.argv)
 	p = PortaSound()
 	p.initBanks()
+	p.changeMIDID()
+	p.changeMIDIC()			
 	p.show()
 	app.exec_()
 	#p.connection.deactivate()
