@@ -37,7 +37,7 @@ class PortaSound(QDialog):
 #	mbytes7 = [0,4,5,6,15]
 #	mbytes8 = [5,6,7,9,15]
 #	mbytes9 = [0,1,3,4,5,7,8,11]
-	midi_note = 36
+
 	tmp_filename = "/tmp/temp.syx"
 
 	def twos_comp_b(self,val):
@@ -914,6 +914,13 @@ class PortaSound(QDialog):
 		midicLabel.setBuddy(self.midicComboBox)
 		self.midicComboBox.activated[str].connect(self.changeMIDIC)
 		
+		self.midinoteSlider = QSlider(Qt.Horizontal)
+		self.midinoteSlider.setMinimum(36)
+		self.midinoteSlider.setMaximum(96)
+		midinoteLabel = QLabel("Midi Note:")
+		midinoteLabel.setBuddy(self.midinoteSlider)		
+		self.midinoteSlider.valueChanged.connect(self.changeMIDINote)
+
 		self.feedbackSlider = QSlider(Qt.Horizontal)
 		self.feedbackSlider.setMinimum(0)
 		self.feedbackSlider.setMaximum(7)
@@ -955,6 +962,8 @@ class PortaSound(QDialog):
 		topLayout.addWidget(self.mididComboBox)
 		topLayout.addWidget(midicLabel)
 		topLayout.addWidget(self.midicComboBox)
+		topLayout.addWidget(midinoteLabel)
+		topLayout.addWidget(self.midinoteSlider)
 		topLayout.addStretch(1)
 
 		bottomBox = QVBoxLayout()
@@ -974,7 +983,7 @@ class PortaSound(QDialog):
 
 
 		mainLayout = QGridLayout()
-		mainLayout.addLayout(topLayout, 0, 0, 1, 2)
+		mainLayout.addLayout(topLayout, 0, 0, 1, 3)
 		mainLayout.addWidget(self.carrierBox, 1, 0)		
 		mainLayout.addWidget(self.modulatorBox, 1, 1)		
 		mainLayout.addWidget(self.extrasbox, 1, 2)
@@ -1216,6 +1225,10 @@ class PortaSound(QDialog):
 	def changeMIDIC(self):
 		self.midi_channel = int(self.midicComboBox.currentIndex())
 
+	def changeMIDINote(self):
+		self.midi_note = self.midinoteSlider.value()
+		self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
+
 	def changeBank(self):
 		self.ready = False
 		self.bank = int(self.bankComboBox.currentText()) - 1
@@ -1324,6 +1337,7 @@ class PortaSound(QDialog):
 
 		self.mididComboBox.setCurrentIndex(0)
 		self.midicComboBox.setCurrentIndex(0)
+		self.midinoteSlider.setValue(36)
 
 		self.ready = True
 		i = 0
@@ -1408,7 +1422,8 @@ if __name__ == '__main__':
 	p = PortaSound()
 	p.initBanks()
 	p.changeMIDID()
-	p.changeMIDIC()			
+	p.changeMIDIC()
+	p.changeMIDINote()			
 	p.show()
 	app.exec_()
 	#p.connection.deactivate()
