@@ -384,7 +384,6 @@ class PortaSound(QDialog):
 			self.send_to_amidi(self.midi_device,path)
 			timer = QTimer(self)
 			timer.singleShot(self.note_length, lambda: self.note_off(self.midi_device,self.midi_note,self.midi_channel))
-			timer.start()
 
 	def note_off(self,device,note,channel):
 		path = "/tmp/note_off.syx"
@@ -393,10 +392,10 @@ class PortaSound(QDialog):
 		f.write(int(note).to_bytes(1, byteorder="little"))
 		f.write(int(127).to_bytes(1, byteorder="little"))
 		f.close()
-		while self.sending == True or self.ready == False:
-			sleep(0.05)
-		self.sending = True
-		self.send_to_amidi(device,path)
+		if self.sending == False and self.ready == True:
+			self.sending = True
+			print("Off")
+			self.send_to_amidi(device,path)
 
 	def send_to_amidi(self,midi_device,path):
 		subprocess.call(["amidi","-p",self.midi_device,"-s",path])
@@ -559,7 +558,7 @@ class PortaSound(QDialog):
 		self.cstComboBox.addItems(["Sine","Squared Sine","Half Sine","Squared Half Sine"])
 		cstLabel = QLabel("Waveform:")
 		cstLabel.setBuddy(self.cstComboBox)
-		self.cstComboBox.activated[str].connect(self.changeCST)
+		self.cstComboBox.currentIndexChanged.connect(self.changeCST)
 
 		self.ccdetune = QCheckBox("Coarse Detune")
 		self.ccdetune.toggled.connect(self.changeCCDetune)
@@ -694,7 +693,7 @@ class PortaSound(QDialog):
 		self.mstComboBox.addItems(["Sine","Squared Sine","Half Sine","Squared Half Sine"])
 		mstLabel = QLabel("Waveform:")
 		mstLabel.setBuddy(self.mstComboBox)
-		self.mstComboBox.activated[str].connect(self.changeMST)
+		self.mstComboBox.currentIndexChanged.connect(self.changeMST)
 
 		self.mcdetune = QCheckBox("Coarse Detune")
 		self.mcdetune.toggled.connect(self.changeMCDetune)
@@ -941,14 +940,14 @@ class PortaSound(QDialog):
 		self.bankComboBox.addItems(["1","2","3","4","5"])
 		bankLabel = QLabel("&Bank:")
 		bankLabel.setBuddy(self.bankComboBox)
-		self.bankComboBox.activated[str].connect(self.changeBank)
+		self.bankComboBox.currentIndexChanged.connect(self.changeBank)
 
 		self.mididComboBox = QComboBox()
 		for key in sorted(self.midi_devices):
 			self.mididComboBox.addItem(key)
 		mididLabel = QLabel("MIDI Device:")
 		mididLabel.setBuddy(self.mididComboBox)
-		self.mididComboBox.activated[str].connect(self.changeMIDID)
+		self.mididComboBox.currentIndexChanged.connect(self.changeMIDID)
 
 		self.midicComboBox = QComboBox()
 		c = 1
@@ -957,7 +956,7 @@ class PortaSound(QDialog):
 			c = c + 1
 		midicLabel = QLabel("MIDI Channel:")
 		midicLabel.setBuddy(self.midicComboBox)
-		self.midicComboBox.activated[str].connect(self.changeMIDIC)
+		self.midicComboBox.currentIndexChanged.connect(self.changeMIDIC)
 		
 		self.midinoteSlider = QSlider(Qt.Horizontal)
 		self.midinoteSlider.setMinimum(36)
@@ -1037,7 +1036,7 @@ class PortaSound(QDialog):
 		mainLayout.setRowStretch(2,1)		
 
 		self.setLayout(mainLayout)
-		self.setWindowTitle("PortaSound PSS-680 patch editor")
+		self.setWindowTitle("PortaSound PSS-680 Patch Editor")
 
 	def changeFeedback(self):
 		if len(self.patches) > 0:
