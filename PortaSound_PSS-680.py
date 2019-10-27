@@ -380,6 +380,7 @@ class PortaSound(QDialog):
 
 	def try_to_send_file(self,path):
 		if self.sending == False and self.ready == True:
+			self.sending = True
 			self.send_to_amidi(self.midi_device,path)
 			timer = QTimer(self)
 			timer.singleShot(self.note_length, lambda: self.note_off(self.midi_device,self.midi_note,self.midi_channel))
@@ -394,11 +395,12 @@ class PortaSound(QDialog):
 		f.close()
 		while self.sending == True or self.ready == False:
 			sleep(0.05)
+		self.sending = True
 		self.send_to_amidi(device,path)
 
 	def send_to_amidi(self,midi_device,path):
-		self.sending = True
-		subprocess.call(["amidi","-p",self.midi_device,"-s",path])	
+		subprocess.call(["amidi","-p",self.midi_device,"-s",path])
+		sleep(0.05)	
 		self.sending = False
 
 	def write_patch(self, f, patch):
