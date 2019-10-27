@@ -394,7 +394,6 @@ class PortaSound(QDialog):
 		f.close()
 		if self.sending == False and self.ready == True:
 			self.sending = True
-			print("Off")
 			self.send_to_amidi(device,path)
 
 	def send_to_amidi(self,midi_device,path):
