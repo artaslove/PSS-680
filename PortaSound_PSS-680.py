@@ -522,9 +522,6 @@ class PortaSound(QDialog):
 		#self.connection = jack.Client('PSS-680 Editor')
 		#self.inport = self.connection.midi_inports.register('midi_in')
 		#self.outport = self.connection.midi_outports.register('midi_out')
-		#if len(sys.argv) != 2:
-		#	print("Usage: ", str(sys.argv[0]), "[filename]")
-		#	exit()
 		self.midi_devices = {}
 		amidi_hw = subprocess.check_output(["amidi","-l"]).decode('utf-8').split('\n')
 		for hw in amidi_hw:
@@ -532,8 +529,6 @@ class PortaSound(QDialog):
 			if len(hw_split) > 1:
 				if hw_split[0][0] != 'D':
 					self.midi_devices[hw_split[2]] = hw_split[1]
-		#print(str(self.midi_devices))
-
 		self.sending = False
 
 		#### Carrier
@@ -620,7 +615,7 @@ class PortaSound(QDialog):
 
 		self.crateksSlider = QSlider(Qt.Horizontal)
 		self.crateksSlider.setMinimum(0)
-		self.crateksSlider.setMaximum(15)
+		self.crateksSlider.setMaximum(3)
 		crateksLabel = QLabel("Rate Key Scaling:")
 		crateksLabel.setBuddy(self.crateksSlider)		
 		self.crateksSlider.valueChanged.connect(self.changeCRateKS)
@@ -755,7 +750,7 @@ class PortaSound(QDialog):
 
 		self.mrateksSlider = QSlider(Qt.Horizontal)
 		self.mrateksSlider.setMinimum(0)
-		self.mrateksSlider.setMaximum(15)
+		self.mrateksSlider.setMaximum(3)
 		mrateksLabel = QLabel("Rate Key Scaling:")
 		mrateksLabel.setBuddy(self.mrateksSlider)		
 		self.mrateksSlider.valueChanged.connect(self.changeMRateKS)
