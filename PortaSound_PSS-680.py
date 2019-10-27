@@ -44,7 +44,7 @@ class PortaSound(QDialog):
 		return 0b1111111 - val + 1
 
 	def load_patches(self, num, filename):
-		if self.check_binary(filename) == 5:
+		if self.check_binary(filename) > 0:
 			if num == 5:
 				self.patches = []
 			f = open(filename,'rb')
@@ -338,7 +338,7 @@ class PortaSound(QDialog):
 			checksum = self.writerandomchar(f,0,1,8,checksum)		# Feedback bit 4 only
 			checksum = self.writerandomchar(f,0,7,1,checksum) 		# Pitch Modulation sensitivity 3 bits 
 			checksum = self.writerandomchar2(f,[0,1,2,3,8,9,10,11],checksum) # Amplitude Modulation sensitivity 2 bits and an unknown bit at 4
-			checksum = self.writerandomchar(f,9,10,1,checksum)		# 09 0A Here be dragons - these chr appear in patches, but are not in the manual
+			checksum = self.writerandomchar(f,9,10,1,checksum)		# 09 0A Here be dragons - these appear in patches, but are not in the manual
 			checksum = self.writerandomchar(f,14,15,1,checksum)		# 0E 0F 
 			checksum = self.writerandomchar(f,0,1,1,checksum)		# 00 01
 			checksum = self.writerandomchar2(f,[0,7,11],checksum) 		# 00 07 0B
@@ -514,6 +514,8 @@ class PortaSound(QDialog):
 				pfilemd5.update(data)
 				if rfilemd5.digest() != pfilemd5.digest():
 					print("Something is not right!")
+				else:
+					print("That worked.")
 		else:
 			 print("Something went wrong with the patch generation.")
 
@@ -1135,7 +1137,7 @@ class PortaSound(QDialog):
 
 	def changeMFDetune(self):
 		if len(self.patches) > 0:
-			self.patches[self.bank]['modulator_fine_detune'] = self.mfdetuneSlider.value()
+			self.patches[self.bank]['modulator_fine_detune'] = self.detune[self.mfdetuneSlider.value()]
 			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeMFMult(self):
