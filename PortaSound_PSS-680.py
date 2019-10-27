@@ -39,6 +39,7 @@ class PortaSound(QDialog):
 #	mbytes9 = [0,1,3,4,5,7,8,11]
 
 	tmp_filename = "/tmp/temp.syx"
+	note_length = 1000 # milliseconds
 
 	def twos_comp_b(self,val):
 		return 0b1111111 - val + 1
@@ -372,17 +373,33 @@ class PortaSound(QDialog):
 		f.write(int(192 + self.midi_channel).to_bytes(1,byteorder="little"))
 		f.write(bank.to_bytes(1, byteorder="little"))
 		f.write(int(144 + self.midi_channel).to_bytes(1,byteorder="little"))
-		f.write(int(self.midi_note + self.midi_channel).to_bytes(1, byteorder="little"))
-		f.write(int(127 + self.midi_channel).to_bytes(1, byteorder="little"))
+		f.write(int(self.midi_note).to_bytes(1, byteorder="little"))
+		f.write(int(127).to_bytes(1, byteorder="little"))
 		f.close()
 		self.try_to_send_file(path)
 
 	def try_to_send_file(self,path):
 		if self.sending == False and self.ready == True:
-			self.sending = True
-			subprocess.Popen(["amidi","-p",self.midi_device,"-s",path])
+			self.send_to_amidi(self.midi_device,path)
+			timer = QTimer(self)
+			timer.singleShot(self.note_length, lambda: self.note_off(self.midi_device,self.midi_note,self.midi_channel))
+			timer.start()
+
+	def note_off(self,device,note,channel):
+		path = "/tmp/note_off.syx"
+		f = open(path,'wb')
+		f.write(int(127 + channel).to_bytes(1, byteorder="little"))
+		f.write(int(note).to_bytes(1, byteorder="little"))
+		f.write(int(127).to_bytes(1, byteorder="little"))
+		f.close()
+		while self.sending == True or self.ready == False:
 			sleep(0.05)
-			self.sending = False
+		self.send_to_amidi(device,path)
+
+	def send_to_amidi(self,midi_device,path):
+		self.sending = True
+		subprocess.call(["amidi","-p",self.midi_device,"-s",path])	
+		self.sending = False
 
 	def write_patch(self, f, patch):
 		for i in self.patch_header:
