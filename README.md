@@ -9,11 +9,9 @@ Requirements: Python3.2+, Qt5, PySide2, mido
 
 To Do:
 
-- mystery bytes: display values / remove mystery bytes
 - patch naming: using unusused bytes?
 - send and trigger after edit checkbox (it's on by default now)
 - trigger note length slider
-- import from keyboard option
 - draw the envelopes
 - portamento switch
 
