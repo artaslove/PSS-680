@@ -1539,5 +1539,5 @@ if __name__ == '__main__':
 	print(mido.backend)
 	app.exec_()
 	p.outport.close()
-	#p.inport.close()
+	p.inport.close()
 	
