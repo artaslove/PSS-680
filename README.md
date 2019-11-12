@@ -11,7 +11,6 @@ To Do:
 
 - patch naming: using unusused bytes?
 - send and trigger after edit checkbox (it's on by default now)
-- trigger note length slider
+- preferences
 - draw the envelopes
-- portamento switch
 
