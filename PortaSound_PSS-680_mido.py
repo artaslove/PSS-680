@@ -336,7 +336,7 @@ class PortaSound(QDialog):
 			checksum = self.writerandomchar(f,0,15,1,checksum)		# Modulator Release Rate
 			checksum = self.writerandomchar(f,0,15,1,checksum) 		# Carrier Decay 1 Level 
 			checksum = self.writerandomchar(f,0,15,1,checksum)		# Carrier Release Rate
-			checksum = self.writerandomchar(f,0,7,1,checksum) 		# Feedback 2 bits and an unknown mystery bit at 3 
+			checksum = self.writerandomchar(f,0,7,1,checksum) 		# Feedback 2 bits and an unknown mystery bit, I'm going to use this for portamento
 			checksum = self.writerandomchar(f,0,1,8,checksum)		# Feedback bit 4 only
 			checksum = self.writerandomchar(f,0,7,1,checksum) 		# Pitch Modulation sensitivity 3 bits 
 			checksum = self.writerandomchar2(f,[0,1,2,3,8,9,10,11],checksum) # Amplitude Modulation sensitivity 2 bits and an unknown bit at 4
@@ -390,6 +390,11 @@ class PortaSound(QDialog):
 		if self.sending == False:
 			msg = mido.Message('note_off', channel=self.midi_channel, note=self.midi_note, velocity=127)
 			self.outport.send(msg)
+
+	def portamento_switch(self,value):
+		if self.sending == False:	
+        		msg = mido.Message("control_change", channel=self.midi_channel, control=65, value=value)
+		        self.outport.send(msg)
 				
 	def send_to_mido(self,path):
 		messages = mido.read_syx_file(path)
@@ -972,6 +977,9 @@ class PortaSound(QDialog):
 		self.vibrato = QCheckBox("V&ibrato Enable")
 		self.vibrato.toggled.connect(self.changeVibrato)
 
+		self.portamento = QCheckBox("Portamento Enable")
+		self.portamento.toggled.connect(self.changePortamento)
+
 		extrasboxlayout.addWidget(feedbackLabel)
 		extrasboxlayout.addWidget(self.feedbackSlider)
 		extrasboxlayout.addWidget(pitchmodLabel)
@@ -986,6 +994,7 @@ class PortaSound(QDialog):
 		verybottomBox.addWidget(self.sustain)
 
 		extrasboxlayout.addLayout(verybottomBox)
+		extrasboxlayout.addWidget(self.portamento)
 
 		extrasboxlayout.addStretch(1)
 		self.extrasbox.setLayout(extrasboxlayout)
@@ -1088,6 +1097,16 @@ class PortaSound(QDialog):
 	def changeVibrato(self):
 		if len(self.patches) > 0:
 			self.patches[self.bank]['vibrato_enable'] = self.vibrato.isChecked()
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
+
+	def changePortamento(self):
+		if len(self.patches) > 0:
+			self.patches[self.bank]['mystery_bit_1'] = self.portamento.isChecked()
+			if self.portamento.isChecked() == True:
+				value = 1
+			else:
+				value = 0
+			self.portamento_switch(value)
 			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeCST(self):
@@ -1324,6 +1343,7 @@ class PortaSound(QDialog):
 		self.vibdelaySlider.setValue(self.patches[self.bank]['vibrato_delay_time'])
 		self.sustain.setChecked(self.patches[self.bank]['sustain_enable'])
 		self.vibrato.setChecked(self.patches[self.bank]['vibrato_enable'])
+		self.portamento.setChecked(self.patches[self.bank]['mystery_bit_1'])
 
 		self.cstComboBox.setCurrentIndex(self.patches[self.bank]['carrier_sine_table'])
 		self.ccdetune.setChecked(self.patches[self.bank]['carrier_coarse_detune'])
@@ -1383,6 +1403,7 @@ class PortaSound(QDialog):
 		self.vibdelaySlider.setValue(0)
 		self.sustain.setChecked(False)
 		self.vibrato.setChecked(False)
+		self.portamento.setChecked(False)
 
 		self.cstComboBox.setCurrentIndex(0)
 		self.ccdetune.setChecked(False)
@@ -1444,6 +1465,7 @@ class PortaSound(QDialog):
 			patch['vibrato_delay_time'] = self.vibdelaySlider.value()
 			patch['sustain_enable'] = self.sustain.isChecked()
 			patch['vibrato_enable'] = self.vibrato.isChecked()
+			patch['mystery_bit_1'] = self.portamento.isChecked()
 			patch['carrier_sine_table'] = self.cstComboBox.currentIndex()
 			patch['carrier_coarse_detune'] = self.ccdetune.isChecked()
 			patch['carrier_fine_detune'] = self.detune[self.cfdetuneSlider.value()]
@@ -1527,7 +1549,7 @@ class PortaSound(QDialog):
 			self.importbutton.setEnabled(True)
 
 if __name__ == '__main__':
-	#os.environ['QT_SCALE_FACTOR'] = '1'
+	#os.environ['QT_SCALE_FACTOR'] = '1.5'
 	QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
 	app = QApplication(sys.argv)
 	p = PortaSound()
@@ -1536,7 +1558,6 @@ if __name__ == '__main__':
 	p.changeMIDIC()
 	p.changeMIDINote()			
 	p.show()
-	print(mido.backend)
 	app.exec_()
 	p.outport.close()
 	p.inport.close()
