@@ -9,7 +9,7 @@ Requirements: Python3.2+, Qt5, PySide2, mido
 
 To Do:
 
-- patch naming: using unusused bytes? with some trickery, about 13 characters of ascii are available. with CP359, maybe 20 characters? The keyboard has patch descriptions longer than 13 characters written on it. Abbreiviate or 6 bit ascii????
+- patch naming: using unused bytes? with some trickery, about 13 characters of ascii are available. with CP359, maybe 20 characters? The keyboard has patch descriptions longer than 13 characters written on it. Abbreiviate or 6 bit ascii????
 - send and trigger after edit checkbox (it's on by default now)
 - preferences
 - draw the envelopes
