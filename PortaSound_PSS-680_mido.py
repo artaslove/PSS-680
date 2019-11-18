@@ -7,7 +7,6 @@ from PySide2.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit
         QVBoxLayout, QWidget, QFileDialog, QMessageBox)
 
 import random
-from time import sleep
 import sys, os
 import hashlib
 import mido
@@ -28,6 +27,7 @@ class PortaSound(QDialog):
 #	mbytes7 = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
 #	mbytes8 = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
 #	mbytes9 = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+
 #	mbytes1 = [9,10]
 #	mbytes2 = [14,15]
 #	mbytes3 = [0,1]
@@ -518,6 +518,20 @@ class PortaSound(QDialog):
 		f.write((self.twos_comp_b(checksum)).to_bytes(1, byteorder="little"))
 		f.write((self.patch_footer).to_bytes(1, byteorder="little"))
 
+	def write_fuzz_patch(self,f):
+		for i in self.patch_header:
+			f.write((i).to_bytes(1, byteorder="little"))	
+		f.write((0).to_bytes(2, byteorder="little")) 		# bank 1			
+		checksum = 0
+		n = 0 
+		while n < 64:
+			v = 15 						# 15 is max, higher values are lost, as per the manual, and in practice. 
+			f.write((v).to_bytes(1, byteorder="little"))	# The unused bits give us room for about 13 regular ascii characters, 
+			checksum = (checksum + v) % 128			# however, the keyboard's default patch names are often quite a lot longer than that. 
+			n += 1						# With 6 bit ascii and some mucking around, we could have about 20 characters... 
+		f.write((self.twos_comp_b(checksum)).to_bytes(1, byteorder="little"))
+		f.write((self.patch_footer).to_bytes(1, byteorder="little"))
+
 	def test_routine(self):
 		rfile1="/tmp/random_test1.syx"
 		rfile2="/tmp/random_test2.syx"
@@ -556,9 +570,8 @@ class PortaSound(QDialog):
 				self.midi_devices[self.outs[midid]] = midid
 		self.sending = False
 
-		#self.outport = mido.open_output("Output", virtual=True)
-		#self.inport = mido.open_input("Input", virtual=True)
-
+		#self.outport = mido.open_output("Output", virtual=True)	# Probably works in most implementations, 
+		#self.inport = mido.open_input("Input", virtual=True)		# however there appears to be a problem with sysex and jack2
 
 		#### Carrier
 		self.carrierBox = QGroupBox("Carrier")
@@ -1041,29 +1054,11 @@ class PortaSound(QDialog):
 		topLayout.addWidget(self.midinoteSlider)
 		topLayout.addStretch(1)
 
-		#bottomBox = QVBoxLayout()
-		#bottomBox.addWidget(feedbackLabel)
-		#bottomBox.addWidget(self.feedbackSlider)
-		#bottomBox.addWidget(pitchmodLabel)
-		#bottomBox.addWidget(self.pitchmodSlider)
-		#bottomBox.addWidget(ampmodLabel)
-		#bottomBox.addWidget(self.ampmodSlider)
-		#bottomBox.addWidget(vibdelayLabel)
-		#bottomBox.addWidget(self.vibdelaySlider)
-		#bottomBox.addStretch(1)
-
-		#verybottomBox = QHBoxLayout()
-		#verybottomBox.addWidget(self.vibrato)		
-		#verybottomBox.addWidget(self.sustain)
-
-
 		mainLayout = QGridLayout()
 		mainLayout.addLayout(topLayout, 0, 0, 1, 3)
 		mainLayout.addWidget(self.carrierBox, 1, 0)		
 		mainLayout.addWidget(self.modulatorBox, 1, 1)		
 		mainLayout.addWidget(self.extrasbox, 1, 2)
-		#mainLayout.addLayout(bottomBox, 2, 0, 1, 3)
-		#mainLayout.addLayout(verybottomBox, 3, 0, 1, 3)
 		mainLayout.setRowStretch(2,1)		
 
 		self.setLayout(mainLayout)
@@ -1512,17 +1507,19 @@ class PortaSound(QDialog):
 
 	def loadPatches(self,num,desc):
 		filename = QFileDialog.getOpenFileName(self, desc, "", "Sysex files (*.syx)")[0]
-		self.load_patches(num,filename)
+		if filename != '':
+			self.load_patches(num,filename)
 
 	def savePatches(self,num,desc):
 		filename = QFileDialog.getSaveFileName(self, desc, "", "Sysex files (*.syx)")[0]
-		f = open(filename,'wb')
-		if num == 5:
-			for patch in self.patches:
-				self.write_patch(f,patch)
-		if num == 1:
-			self.write_patch(f,self.patches[self.bankComboBox.currentIndex()])
-		f.close()
+		if filename != '':
+			f = open(filename,'wb')
+			if num == 5:
+				for patch in self.patches:
+					self.write_patch(f,patch)
+			if num == 1:
+				self.write_patch(f,self.patches[self.bankComboBox.currentIndex()])
+			f.close()
 
 	def randomPatches(self,num):
 		self.random_patches(self.tmp_filename)
@@ -1543,9 +1540,6 @@ class PortaSound(QDialog):
 			if len(messages) == 5:
 				mido.write_syx_file(self.tmp_filename, messages)
 				self.load_patches(5,self.tmp_filename)
-				#mbox = QMessageBox(self)
-				#mbox.setText("Imported 5 patches!")
-				#mbox.exec_()
 			self.importbutton.setEnabled(True)
 
 if __name__ == '__main__':
@@ -1553,6 +1547,10 @@ if __name__ == '__main__':
 	QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
 	app = QApplication(sys.argv)
 	p = PortaSound()
+	if sys.argv[1] == "fuzz":
+		f = open("fuzzpatch.syx",'wb')
+		p.write_fuzz_patch(f)
+		f.close()
 	p.initBanks()
 	p.changeMIDID()
 	p.changeMIDIC()
