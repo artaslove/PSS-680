@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from PySide2.QtCore import QDateTime, Qt, QTimer
+from PySide2.QtCore import Qt, QTimer
 from PySide2.QtWidgets import (QApplication, QCheckBox, QComboBox,
         QDialog, QGridLayout, QGroupBox, QHBoxLayout, QLabel,
         QPushButton, QSlider,QVBoxLayout, QWidget, QFileDialog)
@@ -576,20 +576,23 @@ class PortaSound(QDialog):
 			if midid in self.ins:
 				self.midi_devices[self.outs[midid]] = midid
 		self.sending = False
-		
+
 		#self.outport = mido.open_output("Output", virtual=True)	# Probably works in most implementations 
 		#self.inport = mido.open_input("Input", virtual=True)		#
+
+		self.inputtimer = QTimer(self)
+		self.inputtimer.timeout.connect(self.inputMIDI)
 
 		#### Carrier
 		self.carrierBox = QGroupBox("Carrier")
 
 		self.cstComboBox = QComboBox()
 		self.cstComboBox.addItems(["Sine","Squared Sine","Half Sine","Squared Half Sine"])
-		cstLabel = QLabel("Waveform:")
+		cstLabel = QLabel("Waveform: CC20")
 		cstLabel.setBuddy(self.cstComboBox)
 		self.cstComboBox.currentIndexChanged.connect(self.changeCST)
 
-		self.ccdetune = QCheckBox("Coarse Detune")
+		self.ccdetune = QCheckBox("Coarse Detune CC21")
 		self.ccdetune.toggled.connect(self.changeCCDetune)
 
 		self.cfdetuneSlider = QSlider(Qt.Horizontal)
@@ -597,39 +600,39 @@ class PortaSound(QDialog):
 		self.cfdetuneSlider.setMaximum(15)
 		self.cfdetuneSlider.setTickPosition(QSlider.TicksBelow)
 		self.cfdetuneSlider.setTickInterval(8)
-		cfdetuneLabel = QLabel("Fine Detune:")
+		cfdetuneLabel = QLabel("Fine Detune: CC22")
 		cfdetuneLabel.setBuddy(self.cfdetuneSlider)		
 		self.cfdetuneSlider.valueChanged.connect(self.changeCFDetune)
 
 		self.cfmultSlider = QSlider(Qt.Horizontal)
 		self.cfmultSlider.setMinimum(0)
 		self.cfmultSlider.setMaximum(15)
-		cfmultLabel = QLabel("Frequency Muliplier:")
+		cfmultLabel = QLabel("Frequency Muliplier: CC23")
 		cfmultLabel.setBuddy(self.cfmultSlider)		
 		self.cfmultSlider.valueChanged.connect(self.changeCFMult)
 
-		self.campmod = QCheckBox("Amplitude Modulation")
+		self.campmod = QCheckBox("Amplitude Modulation CC24")
 		self.campmod.toggled.connect(self.changeCAmpMod)
 
 		self.ctlevelSlider = QSlider(Qt.Horizontal)
 		self.ctlevelSlider.setMinimum(0)
 		self.ctlevelSlider.setMaximum(99)
 		self.ctlevelSlider.setInvertedAppearance(True)
-		ctlevelLabel = QLabel("Total Level:")
+		ctlevelLabel = QLabel("Total Level: CC25")
 		ctlevelLabel.setBuddy(self.ctlevelSlider)		
 		self.ctlevelSlider.valueChanged.connect(self.changeCTLevel)
 
 		self.carateSlider = QSlider(Qt.Horizontal)
 		self.carateSlider.setMinimum(0)
 		self.carateSlider.setMaximum(63)
-		carateLabel = QLabel("Attack Rate:")
+		carateLabel = QLabel("Attack Rate: CC26")
 		carateLabel.setBuddy(self.carateSlider)		
 		self.carateSlider.valueChanged.connect(self.changeCARate)
 
 		self.cdrate1Slider = QSlider(Qt.Horizontal)
 		self.cdrate1Slider.setMinimum(0)
 		self.cdrate1Slider.setMaximum(63)
-		cdrate1Label = QLabel("Decay Rate One:")
+		cdrate1Label = QLabel("Decay Rate One: CC27")
 		cdrate1Label.setBuddy(self.cdrate1Slider)		
 		self.cdrate1Slider.valueChanged.connect(self.changeCDRate1)
 
@@ -637,28 +640,28 @@ class PortaSound(QDialog):
 		self.cdlevelSlider.setMinimum(0)
 		self.cdlevelSlider.setMaximum(15)
 		self.cdlevelSlider.setInvertedAppearance(True)
-		cdlevelLabel = QLabel("Decay Level:")
+		cdlevelLabel = QLabel("Decay Level: CC28")
 		cdlevelLabel.setBuddy(self.cdlevelSlider)		
 		self.cdlevelSlider.valueChanged.connect(self.changeCDLevel)
 
 		self.cdrate2Slider = QSlider(Qt.Horizontal)
 		self.cdrate2Slider.setMinimum(0)
 		self.cdrate2Slider.setMaximum(63)
-		cdrate2Label = QLabel("Decay Rate Two:")
+		cdrate2Label = QLabel("Decay Rate Two: CC29")
 		cdrate2Label.setBuddy(self.cdrate2Slider)		
 		self.cdrate2Slider.valueChanged.connect(self.changeCDRate2)
 
 		self.crrateSlider = QSlider(Qt.Horizontal)
 		self.crrateSlider.setMinimum(0)
 		self.crrateSlider.setMaximum(15)
-		crrateLabel = QLabel("Release Rate:")
+		crrateLabel = QLabel("Release Rate: CC30")
 		crrateLabel.setBuddy(self.crrateSlider)		
 		self.crrateSlider.valueChanged.connect(self.changeCRRate)
 
 		self.csrrateSlider = QSlider(Qt.Horizontal)
 		self.csrrateSlider.setMinimum(0)
 		self.csrrateSlider.setMaximum(15)
-		csrrateLabel = QLabel("Sustain Release Rate:")
+		csrrateLabel = QLabel("Sustain Release Rate: CC31")
 		csrrateLabel.setBuddy(self.csrrateSlider)		
 		self.csrrateSlider.valueChanged.connect(self.changeCSRRate)
 
@@ -720,11 +723,11 @@ class PortaSound(QDialog):
 
 		self.mstComboBox = QComboBox()
 		self.mstComboBox.addItems(["Sine","Squared Sine","Half Sine","Squared Half Sine"])
-		mstLabel = QLabel("Waveform:")
+		mstLabel = QLabel("Waveform: CC102")
 		mstLabel.setBuddy(self.mstComboBox)
 		self.mstComboBox.currentIndexChanged.connect(self.changeMST)
 
-		self.mcdetune = QCheckBox("Coarse Detune")
+		self.mcdetune = QCheckBox("Coarse Detune CC103")
 		self.mcdetune.toggled.connect(self.changeMCDetune)
 
 		self.mfdetuneSlider = QSlider(Qt.Horizontal)
@@ -732,39 +735,39 @@ class PortaSound(QDialog):
 		self.mfdetuneSlider.setMaximum(15)
 		self.mfdetuneSlider.setTickPosition(QSlider.TicksBelow)
 		self.mfdetuneSlider.setTickInterval(8)
-		mfdetuneLabel = QLabel("Fine Detune:")
+		mfdetuneLabel = QLabel("Fine Detune: CC104")
 		mfdetuneLabel.setBuddy(self.mfdetuneSlider)		
 		self.mfdetuneSlider.valueChanged.connect(self.changeMFDetune)
 
 		self.mfmultSlider = QSlider(Qt.Horizontal)
 		self.mfmultSlider.setMinimum(0)
 		self.mfmultSlider.setMaximum(15)
-		mfmultLabel = QLabel("Frequency Muliplier:")
+		mfmultLabel = QLabel("Frequency Muliplier: CC105")
 		mfmultLabel.setBuddy(self.mfmultSlider)		
 		self.mfmultSlider.valueChanged.connect(self.changeMFMult)
 
-		self.mampmod = QCheckBox("Amplitude Modulation")
+		self.mampmod = QCheckBox("Amplitude Modulation CC106")
 		self.mampmod.toggled.connect(self.changeMAmpMod)
 
 		self.mtlevelSlider = QSlider(Qt.Horizontal)
 		self.mtlevelSlider.setMinimum(0)
 		self.mtlevelSlider.setMaximum(99)
 		self.mtlevelSlider.setInvertedAppearance(True)
-		mtlevelLabel = QLabel("Total Level:")
+		mtlevelLabel = QLabel("Total Level: CC107")
 		mtlevelLabel.setBuddy(self.mtlevelSlider)		
 		self.mtlevelSlider.valueChanged.connect(self.changeMTLevel)
 
 		self.marateSlider = QSlider(Qt.Horizontal)
 		self.marateSlider.setMinimum(0)
 		self.marateSlider.setMaximum(63)
-		marateLabel = QLabel("Attack Rate:")
+		marateLabel = QLabel("Attack Rate: CC108")
 		marateLabel.setBuddy(self.marateSlider)		
 		self.marateSlider.valueChanged.connect(self.changeMARate)
 
 		self.mdrate1Slider = QSlider(Qt.Horizontal)
 		self.mdrate1Slider.setMinimum(0)
 		self.mdrate1Slider.setMaximum(63)
-		mdrate1Label = QLabel("Decay Rate One:")
+		mdrate1Label = QLabel("Decay Rate One: CC109")
 		mdrate1Label.setBuddy(self.mdrate1Slider)		
 		self.mdrate1Slider.valueChanged.connect(self.changeMDRate1)
 
@@ -772,28 +775,28 @@ class PortaSound(QDialog):
 		self.mdlevelSlider.setMinimum(0)
 		self.mdlevelSlider.setMaximum(15)
 		self.mdlevelSlider.setInvertedAppearance(True)
-		mdlevelLabel = QLabel("Decay Level:")
+		mdlevelLabel = QLabel("Decay Level: CC110")
 		mdlevelLabel.setBuddy(self.mdlevelSlider)		
 		self.mdlevelSlider.valueChanged.connect(self.changeMDLevel)
 
 		self.mdrate2Slider = QSlider(Qt.Horizontal)
 		self.mdrate2Slider.setMinimum(0)
 		self.mdrate2Slider.setMaximum(63)
-		mdrate2Label = QLabel("Decay Rate Two:")
+		mdrate2Label = QLabel("Decay Rate Two: CC111")
 		mdrate2Label.setBuddy(self.mdrate2Slider)		
 		self.mdrate2Slider.valueChanged.connect(self.changeMDRate2)
 
 		self.mrrateSlider = QSlider(Qt.Horizontal)
 		self.mrrateSlider.setMinimum(0)
 		self.mrrateSlider.setMaximum(15)
-		mrrateLabel = QLabel("Release Rate:")
+		mrrateLabel = QLabel("Release Rate: CC112")
 		mrrateLabel.setBuddy(self.mrrateSlider)		
 		self.mrrateSlider.valueChanged.connect(self.changeMRRate)
 
 		self.msrrateSlider = QSlider(Qt.Horizontal)
 		self.msrrateSlider.setMinimum(0)
 		self.msrrateSlider.setMaximum(15)
-		msrrateLabel = QLabel("Sustain Release Rate:")
+		msrrateLabel = QLabel("Sustain Release Rate: CC113")
 		msrrateLabel.setBuddy(self.msrrateSlider)		
 		self.msrrateSlider.valueChanged.connect(self.changeMSRRate)
 
@@ -966,38 +969,38 @@ class PortaSound(QDialog):
 		self.feedbackSlider = QSlider(Qt.Horizontal)
 		self.feedbackSlider.setMinimum(0)
 		self.feedbackSlider.setMaximum(7)
-		feedbackLabel = QLabel("&Feedback:")
+		feedbackLabel = QLabel("&Feedback: CC114")
 		feedbackLabel.setBuddy(self.feedbackSlider)		
 		self.feedbackSlider.valueChanged.connect(self.changeFeedback)
 
 		self.pitchmodSlider = QSlider(Qt.Horizontal)
 		self.pitchmodSlider.setMinimum(0)
 		self.pitchmodSlider.setMaximum(7)
-		pitchmodLabel = QLabel("&Pitch Modulation Sensitivity:")
+		pitchmodLabel = QLabel("&Pitch Modulation Sensitivity: CC115")
 		pitchmodLabel.setBuddy(self.pitchmodSlider)
 		self.pitchmodSlider.valueChanged.connect(self.changePitchMod)
 
 		self.ampmodSlider = QSlider(Qt.Horizontal)
 		self.ampmodSlider.setMinimum(0)
 		self.ampmodSlider.setMaximum(3)
-		ampmodLabel = QLabel("&Amplitude Modulation Sensitivity:")
+		ampmodLabel = QLabel("&Amplitude Modulation Sensitivity: CC116")
 		ampmodLabel.setBuddy(self.ampmodSlider)
 		self.ampmodSlider.valueChanged.connect(self.changeAmpMod)
 
 		self.vibdelaySlider = QSlider(Qt.Horizontal)
 		self.vibdelaySlider.setMinimum(0)
 		self.vibdelaySlider.setMaximum(127)
-		vibdelayLabel = QLabel("&Vibrato Delay Time:")
+		vibdelayLabel = QLabel("&Vibrato Delay Time: CC117")
 		vibdelayLabel.setBuddy(self.vibdelaySlider)
 		self.vibdelaySlider.valueChanged.connect(self.changeVibDelay)
 
-		self.sustain = QCheckBox("&Sustain Enable")
+		self.sustain = QCheckBox("&Sustain Enable CC64")
 		self.sustain.toggled.connect(self.changeSustain)
 
-		self.vibrato = QCheckBox("V&ibrato Enable")
+		self.vibrato = QCheckBox("V&ibrato Enable CC1")
 		self.vibrato.toggled.connect(self.changeVibrato)
 
-		self.portamento = QCheckBox("Portamento Enable")
+		self.portamento = QCheckBox("Portamento Enable CC65")
 		self.portamento.toggled.connect(self.changePortamento)
 
 		self.send = QCheckBox("Send Patch After Edit")
@@ -1576,10 +1579,10 @@ class PortaSound(QDialog):
 
 	def importPatches(self):
 			self.importbutton.setEnabled(False)
-			self.importbutton.repaint()
-			
+			self.importbutton.repaint()			
 			messages = []
-			n = 0	
+			n = 0
+			self.inputtimer.stop()	
 			while len(messages) < 5:
 				if n > 1000000:
 					break
@@ -1590,6 +1593,108 @@ class PortaSound(QDialog):
 				mido.write_syx_file(self.tmp_filename, messages)
 				self.load_patches(5,self.tmp_filename)
 			self.importbutton.setEnabled(True)
+			self.inputtimer.start(50)
+
+	def inputMIDI(self):
+		for msg in self.inport.iter_pending():
+			if msg.type == "control_change":				# Portasound already uses CC 1, 64 and 65
+				# print(str(msg.control) + " " + str(msg.value))
+				if msg.control == 20:		
+					self.cstComboBox.setCurrentIndex(abs(msg.value / 32))		
+				if msg.control == 21:
+					if msg.value > 0:						
+						self.ccdetune.setChecked(True)
+					else:			
+						self.ccdetune.setChecked(False)
+				if msg.control == 22:		
+					self.cfdetuneSlider.setValue(abs(msg.value / 8))			
+				if msg.control == 23:		
+					self.cfmultSlider.setValue(abs(msg.value / 8))			
+				if msg.control == 24:
+					if msg.value > 0:		
+						self.campmod.setChecked(True)
+					else:
+						self.campmod.setChecked(False)			
+				if msg.control == 25:		
+					self.ctlevelSlider.setValue(abs(msg.value / 1.28))			
+				if msg.control == 26:		
+					self.carateSlider.setValue(abs(msg.value / 2))			
+				if msg.control == 27:		
+					self.cdrate1Slider.setValue(abs(msg.value / 2))			
+				if msg.control == 28:		
+					self.cdlevelSlider.setValue(abs(msg.value / 8))			
+				if msg.control == 29:		
+					self.cdrate2Slider.setValue(abs(msg.value / 2))			
+				if msg.control == 30:		
+					self.crrateSlider.setValue(abs(msg.value / 8))			
+				if msg.control == 31:		
+					self.csrrateSlider.setValue(abs(msg.value / 8))			
+
+				#self.crateksSlider.setValue()			
+				#self.clevelkshSlider.setValue()	 
+				#self.clevelkslSlider.setValue()	 
+
+				if msg.control == 102:		
+					self.mstComboBox.setCurrentIndex(abs(msg.value / 32))		
+				if msg.control == 103:
+					if msg.value > 0:		
+						self.mcdetune.setChecked(True)
+					else:			
+						self.mcdetune.setChecked(False)
+				if msg.control == 104:		
+					self.mfdetuneSlider.setValue(abs(msg.value / 8))			
+				if msg.control == 105:		
+					self.mfmultSlider.setValue(abs(msg.value / 8))			
+				if msg.control == 106:
+					if msg.value > 0:		
+						self.mampmod.setChecked(True)
+					else:			
+						self.mampmod.setChecked(False)
+				if msg.control == 107:		
+					self.mtlevelSlider.setValue(abs(msg.value / 1.28))			
+				if msg.control == 108:		
+					self.marateSlider.setValue(abs(msg.value / 2))			
+				if msg.control == 109:		
+					self.mdrate1Slider.setValue(abs(msg.value / 2))			
+				if msg.control == 110:		
+					self.mdlevelSlider.setValue(abs(msg.value / 8))			
+				if msg.control == 111:		
+					self.mdrate2Slider.setValue(abs(msg.value / 2))			
+				if msg.control == 112:		
+					self.mrrateSlider.setValue(abs(msg.value / 8))		
+				if msg.control == 113:		
+					self.msrrateSlider.setValue(abs(msg.value / 8))			
+
+				#self.mrateksSlider.setValue()			
+				#self.mlevelkshSlider.setValue()	 
+				#self.mlevelkslSlider.setValue() 
+
+				if msg.control == 114:		
+					self.feedbackSlider.setValue(abs(msg.value / 16))			
+				if msg.control == 115:		
+					self.pitchmodSlider.setValue(abs(msg.value / 16))			
+				if msg.control == 116:		
+					self.ampmodSlider.setValue(abs(msg.value / 32))			
+				if msg.control == 117:		
+					self.vibdelaySlider.setValue(abs(msg.value))			
+				if msg.control == 64:
+					if msg.value > 0:		
+						self.sustain.setChecked(True)
+					else:		
+						self.sustain.setChecked(False)
+				if msg.control == 1:
+					if msg.value > 0:		
+						self.vibrato.setChecked(True)
+					else:			
+						self.vibrato.setChecked(False)
+				if msg.control == 65:
+					if msg.value > 0:		
+						self.portamento.setChecked(True)
+					else:
+						self.portamento.setChecked(False)
+
+
+				
 
 if __name__ == '__main__':
 	#os.environ['QT_SCALE_FACTOR'] = '1.5'
@@ -1599,7 +1704,8 @@ if __name__ == '__main__':
 	p.initBanks()
 	p.changeMIDID()
 	p.changeMIDIC()
-	p.changeMIDINote()			
+	p.changeMIDINote()
+	p.inputtimer.start(50)
 	p.show()
 	app.exec_()
 	p.outport.close()
