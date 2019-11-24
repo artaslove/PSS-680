@@ -1437,6 +1437,8 @@ class PortaSound(QDialog):
 			self.send.setChecked(prefs.Send)
 			if self.send.isChecked() == False:
 				self.sendnowButton.setEnabled(True)
+				self.midinoteSlider.setEnabled(False)
+				self.midinoteLabel.setEnabled(False)
 		except NameError:
 			self.send.setChecked(True)
 
