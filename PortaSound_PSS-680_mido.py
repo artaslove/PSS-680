@@ -1006,7 +1006,7 @@ class PortaSound(QDialog):
 		self.send = QCheckBox("Send Patch After Edit")
 		self.send.toggled.connect(self.changeSend)
 
-		self.sendnowButton = QPushButton("Send Patch Now", self)
+		self.sendnowButton = QPushButton("Send Patch Now CC119", self)
 		self.sendnowButton.clicked.connect(self.sendNow)
 
 		extrasboxlayout.addWidget(feedbackLabel)
@@ -1035,7 +1035,7 @@ class PortaSound(QDialog):
 		#### Others
 		self.bankComboBox = QComboBox()
 		self.bankComboBox.addItems(["1","2","3","4","5"])
-		bankLabel = QLabel("&Bank:")
+		bankLabel = QLabel("&Bank: CC118")
 		bankLabel.setBuddy(self.bankComboBox)
 		self.bankComboBox.currentIndexChanged.connect(self.changeBank)
 
@@ -1432,11 +1432,14 @@ class PortaSound(QDialog):
 		self.sustain.setChecked(False)
 		self.vibrato.setChecked(False)
 		self.portamento.setChecked(False)
+		self.sendnowButton.setEnabled(False)
 		try:
 			self.send.setChecked(prefs.Send)
+			if self.send.isChecked() == False:
+				self.sendnowButton.setEnabled(True)
 		except NameError:
 			self.send.setChecked(True)
-		self.sendnowButton.setEnabled(False)
+
 
 		self.cstComboBox.setCurrentIndex(0)
 		self.ccdetune.setChecked(False)
@@ -1692,7 +1695,10 @@ class PortaSound(QDialog):
 						self.portamento.setChecked(True)
 					else:
 						self.portamento.setChecked(False)
-
+				if msg.control == 118:
+					self.bankComboBox.setCurrentIndex(msg.value % 5)
+				if msg.control == 119:
+					self.sendnowButton.click()
 
 				
 
