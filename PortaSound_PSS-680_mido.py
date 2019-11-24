@@ -3,11 +3,11 @@ from PySide2.QtCore import QDateTime, Qt, QTimer
 from PySide2.QtWidgets import (QApplication, QCheckBox, QComboBox,
         QDialog, QGridLayout, QGroupBox, QHBoxLayout, QLabel,
         QPushButton, QSlider,QVBoxLayout, QWidget, QFileDialog)
-
 import random
 import sys, os
 import hashlib
 import mido
+import prefs
 
 class PortaSound(QDialog):
 	patch_header = [240, 67, 118, 0]
@@ -552,6 +552,15 @@ class PortaSound(QDialog):
 		else:
 			 print("Something went wrong with the patch generation.")
 
+	def writePrefs(self):
+		f = open('prefs.py','w')
+		f.write("#!/usr/bin/env python\n")
+		f.write("MIDIDevice = \"" + self.mididComboBox.currentText() + "\"\n")
+		f.write("MIDIChannel = " + str(self.midi_channel) + "\n")
+		f.write("MIDINote = " + str(self.midi_note) + "\n")
+		f.write("Send = " + str(self.send.isChecked()) + "\n")
+		f.close()
+
 	def __init__(self, parent=None):
 		super(PortaSound, self).__init__(parent)
 		self.midi_devices = {}
@@ -567,7 +576,7 @@ class PortaSound(QDialog):
 			if midid in self.ins:
 				self.midi_devices[self.outs[midid]] = midid
 		self.sending = False
-
+		
 		#self.outport = mido.open_output("Output", virtual=True)	# Probably works in most implementations 
 		#self.inport = mido.open_input("Input", virtual=True)		#
 
@@ -1344,7 +1353,8 @@ class PortaSound(QDialog):
 
 	def changeMIDINote(self):
 		self.midi_note = self.midinoteSlider.value()
-		self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
+		if len(self.patches) > 0:
+			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
 
 	def changeBank(self):
 		self.ready = False
@@ -1415,7 +1425,10 @@ class PortaSound(QDialog):
 		self.sustain.setChecked(False)
 		self.vibrato.setChecked(False)
 		self.portamento.setChecked(False)
-		self.send.setChecked(True)
+		try:
+			self.send.setChecked(prefs.Send)
+		except NameError:
+			self.send.setChecked(True)
 		self.sendnowButton.setEnabled(False)
 
 		self.cstComboBox.setCurrentIndex(0)
@@ -1463,9 +1476,23 @@ class PortaSound(QDialog):
 		#self.mbitCheckBox1.setChecked(False)
 		#self.mbitCheckBox2.setChecked(False)
 
-		self.mididComboBox.setCurrentIndex(0)
-		self.midicComboBox.setCurrentIndex(0)
-		self.midinoteSlider.setValue(36)
+		try:
+			if prefs.MIDIDevice in self.midi_devices:
+				self.mididComboBox.setCurrentText(prefs.MIDIDevice)
+			else:
+				self.mididComboBox.setCurrentIndex(0)
+		except NameError:
+			self.mididComboBox.setCurrentIndex(0)
+
+		try:
+			self.midicComboBox.setCurrentIndex(prefs.MIDIChannel)
+		except NameError:
+			self.midicComboBox.setCurrentIndex(0)
+
+		try:
+			self.midinoteSlider.setValue(prefs.MIDINote)
+		except NameError:
+			self.midinoteSlider.setValue(36)
 
 		self.ready = True
 		i = 0
@@ -1573,4 +1600,5 @@ if __name__ == '__main__':
 	app.exec_()
 	p.outport.close()
 	p.inport.close()
+	p.writePrefs()
 	
