@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 from PySide2.QtCore import QDateTime, Qt, QTimer
-from PySide2.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
-        QDial, QDialog, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit,
-        QProgressBar, QPushButton, QRadioButton, QScrollBar, QSizePolicy,
-        QSlider, QSpinBox, QStyleFactory, QTableWidget, QTabWidget, QTextEdit,
-        QVBoxLayout, QWidget, QFileDialog, QMessageBox)
+from PySide2.QtWidgets import (QApplication, QCheckBox, QComboBox,
+        QDialog, QGridLayout, QGroupBox, QHBoxLayout, QLabel,
+        QPushButton, QSlider,QVBoxLayout, QWidget, QFileDialog)
 
 import random
 import sys, os
@@ -18,25 +16,17 @@ class PortaSound(QDialog):
 	lks_hi = [15,14,13,12,11,10,9,8,7,6,5,4,0,3,2,1]
 	lks_lo = [15,14,13,12,11,10,9,8,0,7,6,5,4,3,2,1]
 
-#	mbytes1 = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
-#	mbytes2 = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
-#	mbytes3 = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
-#	mbytes4 = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
-#	mbytes5 = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
-#	mbytes6 = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
-#	mbytes7 = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
-#	mbytes8 = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
-#	mbytes9 = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
-
-#	mbytes1 = [9,10]
-#	mbytes2 = [14,15]
-#	mbytes3 = [0,1]
-#	mbytes4 = [0,7,11]
-#	mbytes5 = [2,6,14]
-#	mbytes6 = [13,14,15]
-#	mbytes7 = [0,4,5,6,15]
-#	mbytes8 = [5,6,7,9,15]
-#	mbytes9 = [0,1,3,4,5,7,8,11]
+#		  Mystery bytes values we have tried	    Values present in keyboard patches
+#		  (to no avail) 		
+#	mbytes1 = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15] # [9,10]
+#	mbytes2 = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15] # [14,15]
+#	mbytes3 = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15] # [0,1]
+#	mbytes4 = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15] # [0,7,11]
+#	mbytes5 = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15] # [2,6,14]
+#	mbytes6 = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15] # [13,14,15]
+#	mbytes7 = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15] # [0,4,5,6,15]
+#	mbytes8 = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15] # [5,6,7,9,15]
+#	mbytes9 = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15] # [0,1,3,4,5,7,8,11]
 
 	tmp_filename = "/tmp/temp.syx"
 	note_length = 1000 # milliseconds
@@ -305,57 +295,57 @@ class PortaSound(QDialog):
 		while bank < 5:
 			for i in self.patch_header:
 				f.write((i).to_bytes(1, byteorder="little"))	
-			f.write((0).to_bytes(1, byteorder="little"))			# can be other than zero, but is ignored
-			f.write((bank).to_bytes(1, byteorder="little"))			# 0-4, other values are ignored
+			f.write((0).to_bytes(1, byteorder="little"))			 # can be other than zero, but is ignored
+			f.write((bank).to_bytes(1, byteorder="little"))			 # 0-4, other values are ignored
 			checksum = bank
-			checksum = self.writerandomchar(f,0,15,1,checksum) 		# Modulator fine detune. 4th bit is sign bit
-			checksum = self.writerandomchar(f,0,15,1,checksum)		# Modulator Frequency Multiple
-			checksum = self.writerandomchar(f,0,15,1,checksum) 		# Carrier fine detune. 4th bit is sign bit
-			checksum = self.writerandomchar(f,0,15,1,checksum)		# Carrier Frequency Multiple
-			checksum = self.writerandomchar(f,0,7,1,checksum) 		# Modulator Total Level, upper 3 bits
-			checksum = self.writerandomchar(f,0,15,1,checksum)		# Modulator Total Level, 4 bits
-			checksum = self.writerandomchar(f,0,1,1,checksum) 		# Carrier Total Level, upper 3 bits - it's nice to be able to hear the patches
-			checksum = self.writerandomchar(f,0,15,1,checksum)		# Carrier Total Level, 4 bits
-			checksum = self.writerandomchar(f,0,15,1,checksum) 		# Modulator Level Key Scaling Hi
-			checksum = self.writerandomchar(f,0,15,1,checksum)		# Modulator Level Key Scaling Lo
-			checksum = self.writerandomchar(f,0,15,1,checksum) 		# Carrier Level Key Scaling Hi
-			checksum = self.writerandomchar(f,0,15,1,checksum)		# Carrier Level Key Scaling Lo
-			checksum = self.writerandomchar(f,0,15,1,checksum) 		# Modulator Rate Key Scaling 2 bits, Attack rate upper 2 bits
-			checksum = self.writerandomchar(f,1,15,1,checksum)		# Modulator Attack rate 4 bits
-			checksum = self.writerandomchar(f,0,15,1,checksum) 		# Carrier Rate Key Scaling 2 bits, Attack rate upper 2 bits
-			checksum = self.writerandomchar(f,1,15,1,checksum)		# Carrier Attack rate 4 bits
-			checksum = self.writerandomchar(f,0,15,1,checksum) 		# Modulator Amplitude Modulation Enable 1 bit, Course Detune 1 bit, Decay 1 Rate upper 2bits
-			checksum = self.writerandomchar(f,0,15,1,checksum)		# Modulator Decay 1 Rate 4 bits
-			checksum = self.writerandomchar(f,0,15,1,checksum) 		# Carrier Amplitude Modulation Enable 1 bit, Course Detune 1 bit, Decay 1 Rate upper 2bits
-			checksum = self.writerandomchar(f,0,15,1,checksum)		# Carrier Decay 1 Rate 4 bits
-			checksum = self.writerandomchar(f,0,15,1,checksum) 		# Modulator Sine Table 2 bits, Decay 2 Rate upper 2 bits
-			checksum = self.writerandomchar(f,0,15,1,checksum)		# Modulator Decay 2 Rate 4 bits
-			checksum = self.writerandomchar(f,0,15,1,checksum) 		# Carrier Sine Table 2 bits, Decay 2 Rate upper 2 bits
-			checksum = self.writerandomchar(f,0,15,1,checksum)		# Carrier Decay 2 Rate 4 bits
-			checksum = self.writerandomchar(f,0,15,1,checksum) 		# Modulator Decay 1 Level 
-			checksum = self.writerandomchar(f,0,15,1,checksum)		# Modulator Release Rate
-			checksum = self.writerandomchar(f,0,15,1,checksum) 		# Carrier Decay 1 Level 
-			checksum = self.writerandomchar(f,0,15,1,checksum)		# Carrier Release Rate
-			checksum = self.writerandomchar(f,0,7,1,checksum) 		# Feedback 2 bits and an unknown mystery bit, I'm going to use this for portamento
-			checksum = self.writerandomchar(f,0,1,8,checksum)		# Feedback bit 4 only
-			checksum = self.writerandomchar(f,0,7,1,checksum) 		# Pitch Modulation sensitivity 3 bits 
+			checksum = self.writerandomchar(f,0,15,1,checksum) 		 # Modulator fine detune. 4th bit is sign bit
+			checksum = self.writerandomchar(f,0,15,1,checksum)		 # Modulator Frequency Multiple
+			checksum = self.writerandomchar(f,0,15,1,checksum) 		 # Carrier fine detune. 4th bit is sign bit
+			checksum = self.writerandomchar(f,0,15,1,checksum)		 # Carrier Frequency Multiple
+			checksum = self.writerandomchar(f,0,7,1,checksum) 		 # Modulator Total Level, upper 3 bits
+			checksum = self.writerandomchar(f,0,15,1,checksum)		 # Modulator Total Level, 4 bits
+			checksum = self.writerandomchar(f,0,1,1,checksum) 		 # Carrier Total Level, upper 3 bits - it's nice to be able to hear the patches
+			checksum = self.writerandomchar(f,0,15,1,checksum)		 # Carrier Total Level, 4 bits
+			checksum = self.writerandomchar(f,0,15,1,checksum) 		 # Modulator Level Key Scaling Hi
+			checksum = self.writerandomchar(f,0,15,1,checksum)		 # Modulator Level Key Scaling Lo
+			checksum = self.writerandomchar(f,0,15,1,checksum) 		 # Carrier Level Key Scaling Hi
+			checksum = self.writerandomchar(f,0,15,1,checksum)		 # Carrier Level Key Scaling Lo
+			checksum = self.writerandomchar(f,0,15,1,checksum) 		 # Modulator Rate Key Scaling 2 bits, Attack rate upper 2 bits
+			checksum = self.writerandomchar(f,1,15,1,checksum)		 # Modulator Attack rate 4 bits
+			checksum = self.writerandomchar(f,0,15,1,checksum) 		 # Carrier Rate Key Scaling 2 bits, Attack rate upper 2 bits
+			checksum = self.writerandomchar(f,1,15,1,checksum)		 # Carrier Attack rate 4 bits
+			checksum = self.writerandomchar(f,0,15,1,checksum) 		 # Modulator Amplitude Modulation Enable 1 bit, Course Detune 1 bit, Decay 1 Rate upper 2bits
+			checksum = self.writerandomchar(f,0,15,1,checksum)		 # Modulator Decay 1 Rate 4 bits
+			checksum = self.writerandomchar(f,0,15,1,checksum) 		 # Carrier Amplitude Modulation Enable 1 bit, Course Detune 1 bit, Decay 1 Rate upper 2bits
+			checksum = self.writerandomchar(f,0,15,1,checksum)		 # Carrier Decay 1 Rate 4 bits
+			checksum = self.writerandomchar(f,0,15,1,checksum) 		 # Modulator Sine Table 2 bits, Decay 2 Rate upper 2 bits
+			checksum = self.writerandomchar(f,0,15,1,checksum)		 # Modulator Decay 2 Rate 4 bits
+			checksum = self.writerandomchar(f,0,15,1,checksum) 		 # Carrier Sine Table 2 bits, Decay 2 Rate upper 2 bits
+			checksum = self.writerandomchar(f,0,15,1,checksum)		 # Carrier Decay 2 Rate 4 bits
+			checksum = self.writerandomchar(f,0,15,1,checksum) 		 # Modulator Decay 1 Level 
+			checksum = self.writerandomchar(f,0,15,1,checksum)		 # Modulator Release Rate
+			checksum = self.writerandomchar(f,0,15,1,checksum) 		 # Carrier Decay 1 Level 
+			checksum = self.writerandomchar(f,0,15,1,checksum)		 # Carrier Release Rate
+			checksum = self.writerandomchar(f,0,7,1,checksum) 		 # Feedback 2 bits and an unknown mystery bit
+			checksum = self.writerandomchar(f,0,1,8,checksum)		 # Feedback bit 4 only
+			checksum = self.writerandomchar(f,0,7,1,checksum) 		 # Pitch Modulation sensitivity 3 bits 
 			checksum = self.writerandomchar2(f,[0,1,2,3,8,9,10,11],checksum) # Amplitude Modulation sensitivity 2 bits and an unknown bit at 4
-			checksum = self.writerandomchar(f,9,10,1,checksum)		# 09 0A Here be dragons - these appear in patches, but are not in the manual
-			checksum = self.writerandomchar(f,14,15,1,checksum)		# 0E 0F 
-			checksum = self.writerandomchar(f,0,1,1,checksum)		# 00 01
-			checksum = self.writerandomchar2(f,[0,7,11],checksum) 		# 00 07 0B
-			checksum = self.writerandomchar2(f,[2,6,14],checksum) 		# 02 06 0E	
-			checksum = self.writerandomchar(f,13,15,1,checksum) 		# 0D 0E 0F
-			checksum = self.writerandomchar2(f,[0,4,5,6,15],checksum) 	# 00 04 05 06 0F
-			checksum = self.writerandomchar(f,0,15,1,checksum)		# Modulator Sustain Release Rate
-			checksum = self.writerandomchar2(f,[5,6,7,9,15],checksum) 	# 05 06 07 09 0F
-			checksum = self.writerandomchar(f,0,15,1,checksum)		# Carrier Sustain Release Rate
-			checksum = self.writerandomchar(f,0,7,1,checksum) 		# Vibrato Delay Time upper 3 bits 
-			checksum = self.writerandomchar(f,0,15,1,checksum)		# Vibrato Delay Time
-			f.write((0).to_bytes(1, byteorder="little"))			# This appears to always be zero
-			checksum = self.writerandomchar2(f,[0,1,3,4,5,7,8,11],checksum) # 00 01 03 04 05 07 08 0B
-			checksum = self.writerandomchar(f,0,3,4,checksum)		# Vibrato enable 1 bit, sustain enable 1 bit
-			f.write((0).to_bytes(17, byteorder="little"))			# none of the patches have anything but zeros here
+			checksum = self.writerandomchar(f,9,10,1,checksum)		 # 09 0A Here be dragons - these appear in patches, but are not in the manual
+			checksum = self.writerandomchar(f,14,15,1,checksum)		 # 0E 0F 
+			checksum = self.writerandomchar(f,0,1,1,checksum)		 # 00 01
+			checksum = self.writerandomchar2(f,[0,7,11],checksum) 		 # 00 07 0B
+			checksum = self.writerandomchar2(f,[2,6,14],checksum) 		 # 02 06 0E	
+			checksum = self.writerandomchar(f,13,15,1,checksum) 		 # 0D 0E 0F
+			checksum = self.writerandomchar2(f,[0,4,5,6,15],checksum) 	 # 00 04 05 06 0F
+			checksum = self.writerandomchar(f,0,15,1,checksum)		 # Modulator Sustain Release Rate
+			checksum = self.writerandomchar2(f,[5,6,7,9,15],checksum) 	 # 05 06 07 09 0F
+			checksum = self.writerandomchar(f,0,15,1,checksum)		 # Carrier Sustain Release Rate
+			checksum = self.writerandomchar(f,0,7,1,checksum) 		 # Vibrato Delay Time upper 3 bits 
+			checksum = self.writerandomchar(f,0,15,1,checksum)		 # Vibrato Delay Time
+			f.write((0).to_bytes(1, byteorder="little"))			 # This appears to always be zero
+			checksum = self.writerandomchar2(f,[0,1,3,4,5,7,8,11],checksum)  # 00 01 03 04 05 07 08 0B
+			checksum = self.writerandomchar(f,0,3,4,checksum)		 # Vibrato enable 1 bit, sustain enable 1 bit
+			f.write((0).to_bytes(17, byteorder="little"))			 # none of the patches have anything but zeros here
 			f.write((self.twos_comp_b(checksum)).to_bytes(1, byteorder="little"))
 			f.write((self.patch_footer).to_bytes(1, byteorder="little"))
 			bank = bank + 1
@@ -368,17 +358,25 @@ class PortaSound(QDialog):
 		f.close()
 
 	def write_and_send_patch(self,patch,path):
-		f = open(path,'wb')
-		self.write_patch(f,patch)
-		f.close()
+		if self.sending == False and self.ready == True and self.send.isChecked() == True:
+			f = open(path,'wb')
+			self.write_patch(f,patch)
+			f.close()
+			self.send_to_mido(path)
+
+	def write_and_send_patch_now(self,patch,path):
 		if self.sending == False and self.ready == True:
+			f = open(path,'wb')
+			self.write_patch(f,patch)
+			f.close()
 			self.send_to_mido(path)
 			
 	def bank_change(self):
 		program = 100 + self.bank
 		msg = mido.Message('program_change', channel=self.midi_channel, program=program)
 		self.outport.send(msg)
-		self.note_on()	 
+		if self.send.isChecked() == True:
+			self.note_on()
 
 	def note_on(self):
 		msg = mido.Message('note_on', channel=self.midi_channel, note=self.midi_note, velocity=127)
@@ -570,8 +568,8 @@ class PortaSound(QDialog):
 				self.midi_devices[self.outs[midid]] = midid
 		self.sending = False
 
-		#self.outport = mido.open_output("Output", virtual=True)	# Probably works in most implementations, 
-		#self.inport = mido.open_input("Input", virtual=True)		# however there appears to be a problem with sysex and jack2
+		#self.outport = mido.open_output("Output", virtual=True)	# Probably works in most implementations 
+		#self.inport = mido.open_input("Input", virtual=True)		#
 
 		#### Carrier
 		self.carrierBox = QGroupBox("Carrier")
@@ -993,6 +991,12 @@ class PortaSound(QDialog):
 		self.portamento = QCheckBox("Portamento Enable")
 		self.portamento.toggled.connect(self.changePortamento)
 
+		self.send = QCheckBox("Send after edit")
+		self.send.toggled.connect(self.changeSend)
+
+		self.sendnowButton = QPushButton("Send Now", self)
+		self.sendnowButton.clicked.connect(self.sendNow)
+
 		extrasboxlayout.addWidget(feedbackLabel)
 		extrasboxlayout.addWidget(self.feedbackSlider)
 		extrasboxlayout.addWidget(pitchmodLabel)
@@ -1005,6 +1009,10 @@ class PortaSound(QDialog):
 		verybottomBox = QHBoxLayout()
 		verybottomBox.addWidget(self.vibrato)		
 		verybottomBox.addWidget(self.sustain)
+
+		sendBox = QHBoxLayout()
+		sendBox.addWidget(self.send)
+		sendBox.addWidget(self.sendnowButton)
 
 		extrasboxlayout.addLayout(verybottomBox)
 		extrasboxlayout.addWidget(self.portamento)
@@ -1056,10 +1064,11 @@ class PortaSound(QDialog):
 
 		mainLayout = QGridLayout()
 		mainLayout.addLayout(topLayout, 0, 0, 1, 3)
-		mainLayout.addWidget(self.carrierBox, 1, 0)		
-		mainLayout.addWidget(self.modulatorBox, 1, 1)		
-		mainLayout.addWidget(self.extrasbox, 1, 2)
-		mainLayout.setRowStretch(2,1)		
+		mainLayout.addLayout(sendBox, 1, 0, 1, 3)
+		mainLayout.addWidget(self.carrierBox, 2, 0)		
+		mainLayout.addWidget(self.modulatorBox, 2, 1)		
+		mainLayout.addWidget(self.extrasbox, 2, 2)
+		mainLayout.setRowStretch(3,1)
 
 		self.setLayout(mainLayout)
 		self.setWindowTitle("PortaSound PSS-680 Patch Editor")
@@ -1096,13 +1105,21 @@ class PortaSound(QDialog):
 
 	def changePortamento(self):
 		if len(self.patches) > 0:
-			self.patches[self.bank]['mystery_bit_1'] = self.portamento.isChecked()
 			if self.portamento.isChecked() == True:
 				value = 1
 			else:
 				value = 0
 			self.portamento_switch(value)
-			self.write_and_send_patch(self.patches[self.bank],self.tmp_filename)
+	
+	def changeSend(self):
+		if self.send.isChecked() == True:
+			self.sendnowButton.setEnabled(False)
+		else:
+			self.sendnowButton.setEnabled(True)
+
+	def sendNow(self):
+		if len(self.patches) > 0:
+			self.write_and_send_patch_now(self.patches[self.bank],self.tmp_filename)	
 
 	def changeCST(self):
 		if len(self.patches) > 0:
@@ -1338,7 +1355,6 @@ class PortaSound(QDialog):
 		self.vibdelaySlider.setValue(self.patches[self.bank]['vibrato_delay_time'])
 		self.sustain.setChecked(self.patches[self.bank]['sustain_enable'])
 		self.vibrato.setChecked(self.patches[self.bank]['vibrato_enable'])
-		self.portamento.setChecked(self.patches[self.bank]['mystery_bit_1'])
 
 		self.cstComboBox.setCurrentIndex(self.patches[self.bank]['carrier_sine_table'])
 		self.ccdetune.setChecked(self.patches[self.bank]['carrier_coarse_detune'])
@@ -1399,6 +1415,8 @@ class PortaSound(QDialog):
 		self.sustain.setChecked(False)
 		self.vibrato.setChecked(False)
 		self.portamento.setChecked(False)
+		self.send.setChecked(True)
+		self.sendnowButton.setEnabled(False)
 
 		self.cstComboBox.setCurrentIndex(0)
 		self.ccdetune.setChecked(False)
@@ -1547,10 +1565,6 @@ if __name__ == '__main__':
 	QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
 	app = QApplication(sys.argv)
 	p = PortaSound()
-	if sys.argv[1] == "fuzz":
-		f = open("fuzzpatch.syx",'wb')
-		p.write_fuzz_patch(f)
-		f.close()
 	p.initBanks()
 	p.changeMIDID()
 	p.changeMIDIC()
