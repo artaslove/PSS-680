@@ -9,5 +9,6 @@ Requirements: Python3.2+, Qt5, PySide2, mido
 
 To Do:
 
+- allow user customization of CCs
 - draw the envelopes
 
