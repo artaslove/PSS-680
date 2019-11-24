@@ -5,7 +5,7 @@ This is a linux-based editor librarian for the Yamaha PortaSound PSS-680, using 
 
 Requirements: Python3.2+, Qt5, PySide2, mido
 
-![Alt text](/screenshot.png?raw=true "Work in Progress")
+![Alt text](/screenshot2.png?raw=true "Work in Progress")
 
 To Do:
 
