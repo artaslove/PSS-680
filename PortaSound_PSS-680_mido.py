@@ -1000,10 +1000,10 @@ class PortaSound(QDialog):
 		self.portamento = QCheckBox("Portamento Enable")
 		self.portamento.toggled.connect(self.changePortamento)
 
-		self.send = QCheckBox("Send after edit")
+		self.send = QCheckBox("Send Patch After Edit")
 		self.send.toggled.connect(self.changeSend)
 
-		self.sendnowButton = QPushButton("Send Now", self)
+		self.sendnowButton = QPushButton("Send Patch Now", self)
 		self.sendnowButton.clicked.connect(self.sendNow)
 
 		extrasboxlayout.addWidget(feedbackLabel)
@@ -1055,8 +1055,8 @@ class PortaSound(QDialog):
 		self.midinoteSlider = QSlider(Qt.Horizontal)
 		self.midinoteSlider.setMinimum(36)
 		self.midinoteSlider.setMaximum(96)
-		midinoteLabel = QLabel("Midi Note:")
-		midinoteLabel.setBuddy(self.midinoteSlider)		
+		self.midinoteLabel = QLabel("Midi Note:")
+		self.midinoteLabel.setBuddy(self.midinoteSlider)		
 		self.midinoteSlider.valueChanged.connect(self.changeMIDINote)
 
 		
@@ -1067,7 +1067,7 @@ class PortaSound(QDialog):
 		topLayout.addWidget(self.mididComboBox)
 		topLayout.addWidget(midicLabel)
 		topLayout.addWidget(self.midicComboBox)
-		topLayout.addWidget(midinoteLabel)
+		topLayout.addWidget(self.midinoteLabel)
 		topLayout.addWidget(self.midinoteSlider)
 		topLayout.addStretch(1)
 
@@ -1123,8 +1123,12 @@ class PortaSound(QDialog):
 	def changeSend(self):
 		if self.send.isChecked() == True:
 			self.sendnowButton.setEnabled(False)
+			self.midinoteSlider.setEnabled(True)
+			self.midinoteLabel.setEnabled(True)
 		else:
 			self.sendnowButton.setEnabled(True)
+			self.midinoteSlider.setEnabled(False)
+			self.midinoteLabel.setEnabled(False)
 
 	def sendNow(self):
 		if len(self.patches) > 0:
