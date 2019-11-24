@@ -9,6 +9,5 @@ Requirements: Python3.2+, Qt5, PySide2, mido
 
 To Do:
 
-- MIDI control of GUI
 - draw the envelopes
 
